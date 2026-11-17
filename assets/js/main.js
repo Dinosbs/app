@@ -143,6 +143,8 @@
   var CHAPTER_SCREEN = ['start', 'start', 'cats', 'shop', 'lock'];
   var SCREEN_TAB = { start: 'start', cats: 'cats', shop: 'cats' };
   var hearts = $$('[data-hearts] .app-heart');
+  var searchField = $('[data-search]');
+  var stickySearch = $('[data-sticky-search]');
   var catTiles = $$('[data-cats] img');
   var detail = $('[data-detail]');
   var buyBtn = $('[data-buy]');
@@ -265,6 +267,10 @@
     // Inhalte im Handy folgen dem Scrollen
     var q1 = clamp((chapterProgress(1, y) - 0.12) / 0.76, 0, 1);
     scrollScreen('start', q1);
+    // Suchleiste dockt oben an, sobald sie unter die Statusleiste scrollen würde
+    if (searchField && stickySearch) {
+      stickySearch.classList.toggle('is-on', searchField.offsetTop - scrollMax.start * (reduce ? 0 : q1) <= 54);
+    }
     hearts.forEach(function (h, k) { if (k % 3 !== 1) h.classList.toggle('on', q1 > (k + 0.5) / (hearts.length + 1)); });
 
     var q2 = clamp((chapterProgress(2, y) - 0.12) / 0.76, 0, 1);
