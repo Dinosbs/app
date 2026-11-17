@@ -16,28 +16,26 @@ assets/img/           Tiguan, Deals, Marken-Logos, Produkte, Store-Badges, Favic
 assets/img/app/       Kategorie-Kacheln aus der App (für den Kategorien-Screen im Handy)
 ```
 
-## Scroll-Story mit der App
+## Aufbau der Seite (kurz und knackig)
 
-Der Hero zeigt das Smartphone groß in der Mitte (Intro: Handy fährt ein, Logo zeichnet sich, dann der Startscreen).
-Beim Scrollen wandert es mit einer Drehung abwechselnd nach rechts und links, wechselt den Screen und der Inhalt
-im Handy scrollt mit:
+1. **Hero** – Headline, Store-Buttons, großes Smartphone mit Intro. Rechts am Handy klebt ein rotierender
+   Gewinnspiel-Sticker („Jetzt mitmachen“), der direkt zum Gewinnspiel springt.
+2. **App in 2 Kapiteln** – das Handy wandert mit Drehung zur Seite, die Screens scrollen mit:
 
-| Kapitel | Seite des Handys | Screen im Handy |
-| --- | --- | --- |
-| Hero | Mitte, groß | Start („Hallo, Alex!“) |
-| Deals | rechts | Start: Partner-Highlights scrollen, Herzen füllen sich |
-| Kategorien | links | Kategorien-Kacheln, eine nach der anderen leuchtet auf |
-| Vorteils-Shop | rechts | Produktliste, dann Produktdetail, „In den Warenkorb“, Warenkorb-Zähler springt auf 2 |
-| Push | links | Sperrbildschirm, Mitteilungen kommen nacheinander rein |
+   | Kapitel | Seite des Handys | Screens im Handy |
+   | --- | --- | --- |
+   | Deals & Kategorien | rechts | Start (Partner-Highlights, Herzen füllen sich) → Kategorien |
+   | Shop & Push | links | Produktliste → Produktdetail → in den Warenkorb → Sperrbildschirm mit Push-Mitteilungen |
 
-In jedem Kapitel hüpfen zusätzlich Elemente aus dem Handy und legen sich federnd daneben ab (Push-Mitteilung,
-Deal-Karte, Kategorie-Kacheln, Produktkarte, „In den Warenkorb gelegt“ …) und fliegen beim Weiterscrollen zurück.
-Sie stehen in `index.html` unter `data-pops`; Seite, Höhe, Drehung und Überlappung steuern die `data-*`-Attribute
-(Beschreibung im Kommentar darüber). Mobil werden je Kapitel die ersten zwei gezeigt.
+   Bei jedem Screen-Wechsel hüpfen passende Elemente aus dem Handy (Deal-Karte, Favoriten, Kategorie-Kachel,
+   „15 Welten“, Produktkarte, „In den Warenkorb gelegt“, Push-Mitteilung, Tiguan-Karte) und fliegen beim
+   Weiterscrollen zurück. Sie stehen in `index.html` unter `data-pops` (`data-pop` = Kapitel, `data-phase` = erster/zweiter Screen).
+3. **Gewinnspiel** – VW Tiguan, drei Schritte, Teilnahmebedingungen.
+4. **Attraktive Angebote** – eine Logo-Reihe, sechs Deals, Store-Buttons. Danach Fußzeile.
 
-Die Screens sind in HTML nachgebaut (Abschnitt `data-story` in `index.html`), also gestochen scharf und leicht
-anzupassen. Die Choreografie steht in `main.js` unter „App-Story“ (`CHAPTER_SCREEN` und Keyframes in `measure()`).
-Mit „Bewegung reduzieren“ im Betriebssystem fallen Drehungen und Mitscrollen weg.
+Die Screens sind in HTML nachgebaut (Abschnitt `data-story` in `index.html`). Die Choreografie steht in `main.js`
+unter „App-Story“ (`screenFor`, `PHASE_SPLIT`, Keyframes in `measure()`). Mit „Bewegung reduzieren“ im
+Betriebssystem fallen Drehungen und Mitscrollen weg.
 
 ## App-Weiche
 
@@ -88,8 +86,8 @@ Wird er in `applePt` eingetragen, hängt die Seite `pt`, `ct` (Kampagnenname) un
 
 Deals, Logos und Produkte stammen aus dem Portal (Stand November 2026) und stehen als fertiges HTML in `index.html`.
 Bilder liegen als WebP in `assets/img/deals`, `assets/img/logos` und `assets/img/products`.
-Eine neue Deal-Kachel = eine `<article class="deal">` kopieren und Bild, Logo, Text und `data-kat` anpassen
-(`technik`, `home`, `mobil`, `sport`, `mode`, `beauty`).
+Im Abschnitt „Attraktive Angebote“ stehen sechs Deal-Kacheln: Zum Tauschen eine `<article class="deal">` kopieren
+und Bild (`assets/img/deals/` und `assets/img/deals/sm/`), Logo und Text anpassen.
 
 ## Veröffentlichen
 

@@ -160,7 +160,12 @@
   var tabs = $$('[data-tab]', tabbar);
   var screens = {};
   $$('[data-screen]').forEach(function (s) { screens[s.dataset.screen] = s; });
-  var CHAPTER_SCREEN = ['start', 'start', 'cats', 'shop', 'lock'];
+  // Zwei App-Kapitel mit je zwei Screens: 1 = Start -> Kategorien, 2 = Shop -> Sperrbildschirm (Push)
+  function screenFor(c, y) {
+    if (c === 0) return 'start';
+    var q = chapterProgress(c, y);
+    return q < PHASE_SPLIT[c] ? (c === 1 ? 'start' : 'shop') : (c === 1 ? 'cats' : 'lock');
+  }
   var SCREEN_TAB = { start: 'start', cats: 'cats', shop: 'cats' };
   var hearts = $$('[data-hearts] .app-heart');
   var searchField = $('[data-search]'), searchTop = null;
@@ -230,6 +235,9 @@
   }
 
   var smooth = function (t) { return t * t * (3 - 2 * t); };
+  // Anteil eines Abschnitts zwischen zwei Ankern, in dem das Handy stillsteht (vorne und hinten)
+  var holdFor = function (gap) { return clamp(0.5 - (vh * 0.36) / Math.max(gap, 1), 0.12, 0.4); };
+  var PHASE_SPLIT = { 1: 0.5, 2: 0.6 };   // ab hier zeigt das Kapitel den zweiten Screen
   var inOut = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
   var lerp = function (a, b, t) { return a + (b - a) * t; };
 
@@ -261,7 +269,7 @@
     var i = 0;
     while (i < n - 2 && y > anchors[i + 1]) i++;
     var u = clamp((y - anchors[i]) / (anchors[i + 1] - anchors[i]), 0, 1);
-    var hold = 0.24;
+    var hold = holdFor(anchors[i + 1] - anchors[i]);
     var e = reduce ? (u > 0.5 ? 1 : 0) : inOut(clamp((u - hold) / (1 - 2 * hold), 0, 1));
     var a = kf[i], b = kf[i + 1];
     var x = lerp(a.x, b.x, e), yy = lerp(a.y, b.y, e), s = lerp(a.s, b.s, e), ry = lerp(a.ry, b.ry, e), rz = 0;
@@ -282,7 +290,7 @@
     // Screen wechseln, sobald die Drehung den halben Weg hat
     var idx = e > 0.5 ? i + 1 : i;
     if (y > anchors[n - 1]) idx = n - 1;
-    if (splashDone || idx > 0) { splashDone = true; setScreen(CHAPTER_SCREEN[idx]); }
+    if (splashDone || idx > 0) { splashDone = true; setScreen(screenFor(idx, y)); }
 
     // Hero-Text blendet aus
     if (heroCopy) {
@@ -306,7 +314,8 @@
     }
 
     // Inhalte im Handy folgen dem Scrollen
-    var q1 = clamp((chapterProgress(1, y) - 0.12) / 0.76, 0, 1);
+    var c1 = chapterProgress(1, y), c2 = chapterProgress(2, y);
+    var q1 = clamp((c1 - 0.1) / 0.38, 0, 1);          // Start-Screen scrollt in der ersten Hälfte
     scrollScreen('start', q1);
     // Suchleiste dockt oben an, sobald sie unter die Statusleiste scrollen würde
     if (searchField && stickySearch) {
@@ -315,16 +324,16 @@
     }
     hearts.forEach(function (h, k) { if (k % 3 !== 1) h.classList.toggle('on', q1 > (k + 0.5) / (hearts.length + 1)); });
 
-    var q2 = clamp((chapterProgress(2, y) - 0.12) / 0.76, 0, 1);
+    var q2 = clamp((c1 - 0.52) / 0.36, 0, 1);         // dann die Kategorien
     scrollScreen('cats', q2);
     var hot = q2 > 0.04 && q2 < 0.98 ? Math.min(catTiles.length - 1, Math.floor(q2 * catTiles.length)) : -1;
     catTiles.forEach(function (img, k) { img.classList.toggle('is-hot', k === hot); });
 
-    var q3 = clamp((chapterProgress(3, y) - 0.1) / 0.8, 0, 1);
-    scrollScreen('shop', clamp(q3 / 0.5, 0, 1));
-    detail.classList.toggle('is-open', q3 > 0.56);
+    var q3 = clamp((c2 - 0.08) / 0.5, 0, 1);          // Shop: Liste, Produktdetail, in den Warenkorb
+    scrollScreen('shop', clamp(q3 / 0.45, 0, 1));
+    detail.classList.toggle('is-open', q3 > 0.5);
     var bought = q3 > 0.8;
-    buyBtn.classList.toggle('is-pressed', q3 > 0.76 && q3 < 0.84);
+    buyBtn.classList.toggle('is-pressed', q3 > 0.74 && q3 < 0.86);
     var count = bought ? '2' : '1';
     if (cartBadge.textContent !== count) {
       cartBadge.textContent = count;
@@ -333,7 +342,7 @@
 
     updatePops(y);
 
-    var q4 = clamp((chapterProgress(4, y) - 0.1) / 0.7, 0, 1);
+    var q4 = clamp((c2 - 0.62) / 0.26, 0, 1);         // danach Push-Mitteilungen auf dem Sperrbildschirm
     notes.forEach(function (nt, k) {
       // die älteste Mitteilung kommt zuerst, neue schieben sich oben drüber
       var order = notes.length - 1 - k;
@@ -349,7 +358,8 @@
     pops.forEach(function (el) {
       var c = +el.dataset.pop, k = kf[c];
       if (!k) return;
-      var n = perChapter[c] = (perChapter[c] || 0) + 1;
+      var key = c + (el.dataset.phase || '');
+      var n = perChapter[key] = (perChapter[key] || 0) + 1;
       var ps = small ? 0.62 : Math.min(1, Math.max(0.85, k.s));
       var w = el.offsetWidth, h = el.offsetHeight;
       var hw = 150 * k.s, hh = 310 * k.s;
@@ -396,12 +406,18 @@
     for (var r = 0; r < n; r++) {
       var before = r > 0 ? anchors[r] - anchors[r - 1] : 0;
       var after = r < n - 1 ? anchors[r + 1] - anchors[r] : 0;
-      if (y >= anchors[r] - before * 0.2 && y <= anchors[r] + after * 0.2) rest = r;
+      if (y >= anchors[r] - before * holdFor(before || 1) && y <= anchors[r] + after * holdFor(after || 1)) rest = r;
     }
     var storyEnd = tops[n - 1] + heights[n - 1];
     if (y > anchors[n - 1]) rest = y < storyEnd - vh * 0.75 ? n - 1 : -1;
-    if (rest === 0 && !splashDone) rest = -1;
-    pops.forEach(function (el) { el.classList.toggle('is-out', +el.dataset.pop === rest); });
+    var ready = html.classList.contains('is-ready');
+    var phase = rest > 0 ? (chapterProgress(rest, y) < (PHASE_SPLIT[rest] || 1) ? 'a' : 'b') : '';
+    pops.forEach(function (el) {
+      var c = +el.dataset.pop;
+      var out = c === rest && (!el.dataset.phase || el.dataset.phase === phase) &&
+                (c !== 0 || splashDone || (ready && el.hasAttribute('data-early')));
+      el.classList.toggle('is-out', out);
+    });
   }
 
   function scrollScreen(name, q) {
@@ -425,7 +441,10 @@
     window.addEventListener('load', function () {
       (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(loadDeferred, { timeout: 1200 });
     });
-    var splashWait = function () { setTimeout(endSplash, reduce ? 0 : 2300); };
+    var splashWait = function () {
+      setTimeout(endSplash, reduce ? 0 : 2300);
+      setTimeout(function () { updatePops(window.scrollY); }, reduce ? 0 : 900);
+    };
     if (html.classList.contains('is-ready')) splashWait();
     else {
       var mo = new MutationObserver(function () { if (html.classList.contains('is-ready')) { mo.disconnect(); splashWait(); } });
@@ -602,8 +621,8 @@
       el.hidden = !vis;
     });
     var all = shown >= total;
-    moreBtn.hidden = all;
-    moreApp.hidden = !all;
+    if (moreBtn) moreBtn.hidden = all;
+    if (moreApp) moreApp.hidden = !all;
     if (!animate || reduce) return;
     var n = 0;
     dealEls.forEach(function (el) {
@@ -632,7 +651,7 @@
         renderDeals(true);
       });
     });
-    moreBtn.addEventListener('click', function () { state.limit += 9; renderDeals(true); });
+    if (moreBtn) moreBtn.addEventListener('click', function () { state.limit += 9; renderDeals(true); });
   }
 
   /* ---------------------------------------------------------------- Dialoge */
