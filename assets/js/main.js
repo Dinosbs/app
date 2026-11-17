@@ -13,6 +13,12 @@
   var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   var isMobile = VN.os === 'ios' || VN.os === 'android';
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+  // Position im Layout – unabhängig von Animationen/Transforms (getBoundingClientRect enthält diese)
+  var offsetWithin = function (el, stop) {
+    var x = 0, y = 0;
+    while (el && el !== stop) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; }
+    return { x: x, y: y };
+  };
   var easeOut = function (t) { return 1 - Math.pow(1 - t, 3); };
 
   /* ---------------------------------------------------------------- Store-Links mit Tracking */
@@ -194,7 +200,7 @@
     var ry = small ? 0 : 13;
     // Hero: groß, mittig, oben angeschnitten unter dem Text
     var heroScale = small ? Math.min(1, (vw * 0.8) / W) : Math.min(1.32, (vh * 0.95) / H);
-    var copyBottom = heroCopy ? heroCopy.getBoundingClientRect().bottom + sy : vh * 0.45;
+    var copyBottom = heroCopy ? offsetWithin(heroCopy, null).y + heroCopy.offsetHeight : vh * 0.45;
     var phoneTop = copyBottom + (small ? 26 : 34);
     var heroY = phoneTop + (H * heroScale) / 2 - vh / 2;
     kf = [
@@ -503,14 +509,16 @@
   var rail = $('.steps__rail');
   function placeRail() {
     if (!rail || !stepEls.length) return;
-    var icons = $$('.step__icon', steps), sr = steps.getBoundingClientRect();
-    var a = icons[0].getBoundingClientRect(), b = icons[icons.length - 1].getBoundingClientRect();
-    var vertical = Math.abs(a.left - b.left) < 10;
+    var icons = $$('.step__icon', steps);
+    var first = icons[0], last = icons[icons.length - 1];
+    var a = offsetWithin(first, steps), b = offsetWithin(last, steps);
+    var w = first.offsetWidth, h = first.offsetHeight;
+    var vertical = Math.abs(a.x - b.x) < 10;
     rail.classList.toggle('is-vertical', vertical);
     if (vertical) {
-      rail.style.cssText = 'left:' + (a.left + a.width / 2 - sr.left - 1) + 'px;top:' + (a.top + a.height / 2 - sr.top) + 'px;width:2px;height:' + (b.top - a.top) + 'px';
+      rail.style.cssText = 'left:' + (a.x + w / 2 - 1) + 'px;top:' + (a.y + h / 2) + 'px;width:2px;height:' + (b.y - a.y) + 'px';
     } else {
-      rail.style.cssText = 'left:' + (a.left + a.width / 2 - sr.left) + 'px;top:' + (a.top + a.height / 2 - sr.top - 1) + 'px;height:2px;width:' + (b.left - a.left) + 'px';
+      rail.style.cssText = 'left:' + (a.x + w / 2) + 'px;top:' + (a.y + h / 2 - 1) + 'px;height:2px;width:' + (b.x - a.x) + 'px';
     }
   }
   placeRail();
@@ -521,8 +529,11 @@
     if (!canvas || reduce) return;
     var ctx = canvas.getContext('2d');
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.style.display = 'block';
     canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
-    ctx.scale(dpr, dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // immer die ganze Leinwand löschen (auch wenn sich die Fenstergröße inzwischen geändert hat)
+    var wipe = function () { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.restore(); };
     var r = origin.getBoundingClientRect();
     var ox = r.left + 40, oy = r.top + r.height / 2;
     var colors = ['#009cb9', '#1c87b8', '#5fd3e4', '#b3e1ea', '#ffffff', '#7ff0c4'];
@@ -536,14 +547,15 @@
     var t0 = performance.now();
     (function frame(t) {
       var el = (t - t0) / 1000;
-      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      wipe();
       parts.forEach(function (p) {
         p.vy += 0.32; p.vx *= 0.985; p.vy *= 0.985; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
         p.life = clamp(1.9 - el, 0, 1);
         ctx.save(); ctx.globalAlpha = p.life; ctx.translate(p.x, p.y); ctx.rotate(p.rot);
         ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.rot * 2))); ctx.restore();
       });
-      if (el < 2) requestAnimationFrame(frame); else ctx.clearRect(0, 0, innerWidth, innerHeight);
+      if (el < 2) requestAnimationFrame(frame);
+      else { wipe(); canvas.width = canvas.height = 0; canvas.style.display = 'none'; }   // Leinwand freigeben
     })(t0);
   }
 
