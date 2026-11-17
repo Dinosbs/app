@@ -358,6 +358,7 @@
     pops.forEach(function (el) {
       var c = +el.dataset.pop, k = kf[c];
       if (!k) return;
+      if (getComputedStyle(el).display === 'none') return;   // z. B. QR mobil / Push-Mitteilung am Desktop
       var key = c + (el.dataset.phase || '');
       var n = perChapter[key] = (perChapter[key] || 0) + 1;
       var ps = small ? 0.62 : Math.min(1, Math.max(0.85, k.s));
