@@ -175,6 +175,17 @@
       { x: X, y: restY, s: rest, ry: -ry },
       { x: -X, y: restY, s: rest, ry: ry }
     ];
+    if (small) {
+      // Mobil: Text klebt oben, das Handy nutzt den Platz bis zum unteren Rand so gut wie möglich
+      var navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 66;
+      for (var k = 1; k < kf.length; k++) {
+        var textBottom = navH + 4 + (texts[k] ? texts[k].offsetHeight : 200) - 14;
+        var avail = vh - textBottom - 18;
+        var sk = clamp(avail / H, 0.42, Math.min(0.82, (vw * 0.74) / W));
+        kf[k].s = sk;
+        kf[k].y = textBottom + 6 + (H * sk) / 2 - vh / 2;
+      }
+    }
     Object.keys(screens).forEach(function (k) {
       var sc = $('[data-scroll]', screens[k]);
       scrollMax[k] = sc ? Math.max(0, sc.offsetHeight - screens[k].clientHeight) : 0;
@@ -241,7 +252,10 @@
     // Kapiteltexte ein-/ausblenden
     for (var c = 1; c < n; c++) {
       var q = chapterProgress(c, y);
-      var o = smooth(clamp((q - 0.1) / 0.16, 0, 1)) * (1 - smooth(clamp((q - 0.8) / 0.14, 0, 1)));
+      // mobil liegen Text und Handy übereinander: Text erst zeigen, wenn das Handy steht
+      var o = small
+        ? smooth(clamp((q - 0.2) / 0.12, 0, 1)) * (1 - smooth(clamp((q - 0.7) / 0.1, 0, 1)))
+        : smooth(clamp((q - 0.1) / 0.16, 0, 1)) * (1 - smooth(clamp((q - 0.8) / 0.14, 0, 1)));
       var t = texts[c];
       t.style.opacity = o.toFixed(3);
       t.style.transform = reduce ? '' : 'translate3d(0,' + ((q < 0.5 ? 1 : -1) * (1 - o) * 40).toFixed(1) + 'px,0)';

@@ -714,16 +714,30 @@ main { overflow-x: clip; }
   .step__num { display: none; }
   .step__icon { grid-row: span 2; margin: 0; }
   .step p { margin-top: 2px; }
-  .chapter--left, .chapter--right { height: 170vh; }
-  .chapter__text { top: calc(var(--nav-h) + 10px); height: auto; width: auto; margin: 0 var(--gutter) !important; align-items: center; text-align: center; }
-  .chapter__text h2 { margin: 12px 0 10px; font-size: clamp(1.9rem, 8vw, 2.6rem); }
-  .chapter__text p { font-size: 1.05rem; }
-  .chapter__facts { justify-content: center; gap: 24px; margin-top: 14px; }
-  .chapter__facts b { font-size: 1.8rem; }
-  .tile__link { margin-top: 10px; }
-  .story__stage::before { width: 480px; height: 480px; margin: -240px 0 0 -240px; }
+  /* Story mobil: Text oben angepinnt (mit weichem Hintergrund), das Handy füllt den Platz darunter (JS misst nach) */
+  .chapter--left, .chapter--right { z-index: 6; height: 145vh; }
+  .chapter__text {
+    top: calc(var(--nav-h) + 4px); height: auto; width: auto; margin: 0 !important; padding: 6px var(--gutter) 26px;
+    align-items: center; text-align: center;
+    background: linear-gradient(var(--paper) 72%, rgba(243, 248, 250, 0));
+  }
+  .eyebrow { font-size: .78rem; padding: .36em .85em .36em .65em; }
+  .chapter__text h2 { margin: 10px 0 8px; font-size: clamp(1.7rem, 7.4vw, 2.3rem); line-height: 1.08; }
+  .chapter__text p { max-width: 30em; font-size: 1.02rem; line-height: 1.45; }
+  .chapter__facts { justify-content: center; gap: 26px; margin-top: 10px; }
+  .chapter__facts b { font-size: 1.6rem; }
+  .chapter__facts span { font-size: .78rem; }
+  .tile__link { margin-top: 8px; }
+  .story__stage::before { width: 420px; height: 420px; margin: -210px 0 0 -210px; }
+  .brands { padding: 56px 0 36px; }
+  .brands__head { text-align: center; justify-items: center; margin-bottom: 24px; }
+  .brands__head p { font-size: 1.08rem; }
+  .deals { padding-top: 12px; padding-bottom: 64px; }
+  .section-head { margin-bottom: 22px; }
+  .win__panel { padding-top: 48px; }
+  .steps { margin-top: 44px; }
 }
-@media (max-width: 820px) and (max-height: 760px) {
+@media (max-width: 820px) and (max-height: 600px) {
   .chapter__text p { display: none; }
 }
 @media (max-width: 640px) {
@@ -737,6 +751,11 @@ main { overflow-x: clip; }
   .pill-live__sep, .pill-live b { display: none; }
   .hero__scroll { display: none; }
   .badge img { height: 46px; }
+  .badges { gap: 10px; }
+  .win__ghost { display: none; }
+  .win__lead { font-size: 1.05rem; }
+  .win__specs { gap: 8px; }
+  .footer__links { gap: 4px 18px; }
   .deal-grid {
     grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 84%;
     overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
@@ -745,7 +764,11 @@ main { overflow-x: clip; }
   .deal-grid::-webkit-scrollbar { display: none; }
   .deal { scroll-snap-align: start; }
   .deal:hover { transform: none; }
-  .filters { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; padding-bottom: 6px; }
+  .filters {
+    flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; padding-bottom: 6px;
+    -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); mask-image: linear-gradient(90deg, #000 82%, transparent);
+  }
+  .filters::after { content: ""; flex: none; width: 24px; }
   .filters::-webkit-scrollbar { display: none; }
   .filter { flex: none; }
   .marquee li { width: 132px; height: 76px; padding: 14px 18px; }
@@ -754,6 +777,13 @@ main { overflow-x: clip; }
   .flag-off { font-size: 1.5rem; }
   .flag-logo { width: 6.4rem; height: 3.6rem; }
 }
+
+@media (max-width: 380px) {
+  .badge img { height: 40px; }
+  .hero__title { font-size: 2.45rem; }
+}
+/* Unten Platz für die Sticky-Leiste lassen */
+[data-os="ios"] .footer, [data-os="android"] .footer { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
