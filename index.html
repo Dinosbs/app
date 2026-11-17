@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>vorteile.net App – Exklusive Mitarbeitervorteile &amp; Tiguan-Gewinnspiel</title>
+<meta name="description" content="Hol dir die vorteile.net App: exklusive Rabatte bei über 450 Marken, Deals der Woche, Gutscheinwelt und Vorteils-Shop. App laden, Push an, einloggen – und einen VW Tiguan gewinnen.">
+<meta name="theme-color" content="#1c87b8">
+<meta name="color-scheme" content="light">
+<meta name="apple-itunes-app" content="app-id=6807748597">
+<link rel="canonical" href="https://app.vorteile.net/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://app.vorteile.net/">
+<meta property="og:title" content="Die vorteile.net App – jetzt laden &amp; VW Tiguan gewinnen">
+<meta property="og:description" content="Exklusive Rabatte bei über 450 Marken – jetzt als App. App laden, Push an, einloggen und automatisch am Tiguan-Gewinnspiel teilnehmen.">
+<meta property="og:image" content="https://app.vorteile.net/assets/img/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/img/brand/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/img/brand/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/img/brand/apple-touch-icon.png">
+
+<!--
+  ===================================================================================
+  APP-WEICHE (Sniffer)
+  Läuft als Allererstes, noch bevor die Seite gezeichnet wird:
+    iPhone / iPad  -> App Store
+    Android        -> Google Play
+    alles andere   -> bleibt auf der Landingpage (Fallback)
+  Klappt die Weiterleitung nicht (z. B. In-App-Browser blockiert), bleibt man ebenfalls hier.
+
+  Store-Links und Tracking: nur hier im Objekt VN ändern.
+  Testen ohne Weiterleitung: https://app.vorteile.net/?stay
+  ===================================================================================
+-->
+<script>
+(function (w, d) {
+  var VN = w.VN = {
+    ios: 'https://apps.apple.com/de/app/vorteile-net/id6807748597',
+    android: 'https://play.google.com/store/apps/details?id=net.vorteile&hl=de',
+    // Optional: Provider-Token aus App Store Connect (App-Analyse > Kampagnen).
+    // Ist er gesetzt, zählt App Store Connect Aufrufe/Downloads je Kampagne (ct=…).
+    applePt: '',
+    source: 'app.vorteile.net'
+  };
+  var html = d.documentElement, ua = navigator.userAgent || '';
+  var ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+  var android = !ios && /Android/i.test(ua);
+  VN.os = ios ? 'ios' : android ? 'android' : 'desktop';
+  html.setAttribute('data-os', VN.os);
+  html.className += ' js';
+
+  var q = {};
+  location.search.replace(/[?&]([^=&#]+)=?([^&#]*)/g, function (_, k, v) {
+    try { q[decodeURIComponent(k)] = decodeURIComponent(v.replace(/\+/g, ' ')); } catch (e) {}
+  });
+  VN.query = q;
+
+  // Baut den Store-Link inkl. Kampagnen-Parametern.
+  // Eingehende ?utm_source=…&utm_campaign=… (z. B. vom Flyer-QR-Code) werden an Google Play durchgereicht.
+  VN.url = function (target, medium) {
+    var campaign = q.utm_campaign || q.c || '';
+    if (target === 'ios') {
+      if (!VN.applePt) return VN.ios;
+      var ct = (campaign || medium || 'landingpage').slice(0, 40);
+      return VN.ios + (VN.ios.indexOf('?') < 0 ? '?' : '&') + 'pt=' + encodeURIComponent(VN.applePt) + '&ct=' + encodeURIComponent(ct) + '&mt=8';
+    }
+    var ref = 'utm_source=' + encodeURIComponent(q.utm_source || VN.source) +
+              '&utm_medium=' + encodeURIComponent(q.utm_medium || medium || 'landingpage') +
+              (campaign ? '&utm_campaign=' + encodeURIComponent(campaign) : '');
+    return VN.android + '&referrer=' + encodeURIComponent(ref);
+  };
+
+  var bot = /bot|crawl|spider|slurp|facebookexternalhit|whatsapp|telegram|slack|discord|linkedin|embedly|pinterest|preview|lighthouse|google-inspectiontool/i.test(ua);
+  var stay = 'stay' in q || 'noredirect' in q || /stay/.test(location.hash);
+  var once = false;
+  try { once = sessionStorage.getItem('vn-redirect') === '1'; } catch (e) {}
+
+  if (VN.os !== 'desktop' && !bot && !stay && !once) {
+    try { sessionStorage.setItem('vn-redirect', '1'); } catch (e) {}
+    VN.redirecting = true;
+    html.className += ' is-redirecting';
+    var target = VN.url(VN.os, 'redirect'), gone = false;
+
+    // Overlay weg, Seite zeigen. Funktioniert auch, falls main.js nie geladen wurde.
+    VN.endRedirect = function (animated) {
+      if (!VN.redirecting) return;
+      VN.redirecting = false;
+      if (VN.onRedirectEnd) VN.onRedirectEnd(animated);
+      else html.className = html.className.replace(/\s*\b(is-redirecting|js)\b/g, '');
+    };
+    VN.cancelRedirect = function () { gone = true; VN.endRedirect(true); };
+
+    var go = function () {
+      if (gone) return;
+      gone = true;
+      w.location.replace(target);
+      // Geht der Store nicht auf (z. B. In-App-Browser), bleibt man auf der Landingpage.
+      w.setTimeout(function () { VN.endRedirect(true); }, 2500);
+    };
+    // Erst nach dem Laden weiterleiten – sonst bricht der Browser das Laden der Seite ab und
+    // der Fallback wäre unvollständig. Spätestens nach 1,2 s geht es aber los.
+    w.addEventListener('load', go);
+    w.setTimeout(go, 1200);
+    d.addEventListener('visibilitychange', function () { if (d.hidden && gone) VN.endRedirect(false); });
+    w.addEventListener('pageshow', function (e) { if (e.persisted) VN.endRedirect(false); });
+  }
+})(window, document);
+</script>
+<style>
+  /* Kritisch: Weiterleitungs-Overlay muss sofort stehen, bevor style.css geladen ist */
+  .redirect{display:none}
+  .is-redirecting .redirect{display:flex;position:fixed;inset:0;z-index:1000;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:32px;text-align:center;color:#fff;background:linear-gradient(150deg,#0b4f72 0%,#1c87b8 55%,#009cb9 100%);font-family:"Barlow Semi Condensed",system-ui,sans-serif}
+  .is-redirecting body{overflow:hidden}
+</style>
+<link rel="preload" href="assets/fonts/barlow-semi-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/barlow-semi-condensed-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="assets/js/main.js" defer></script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></symbol><symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></symbol><symbol id="i-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></symbol><symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1 1 12 0c0 6.5 2.5 8 2.5 8h-17S6 15.5 6 9"/><path d="M10.2 20.5a2 2 0 0 0 3.6 0"/></symbol><symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol><symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol><symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 12 3.5l8.5 7V20a.5.5 0 0 1-.5.5h-5v-6h-6v6H4a.5.5 0 0 1-.5-.5z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></symbol><symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-9-9.4C2 7.3 4.2 4.5 7.3 4.5c2 0 3.5 1.1 4.7 2.8 1.2-1.7 2.7-2.8 4.7-2.8 3.1 0 5.3 2.8 4.3 6.1C19.5 15.4 12 20 12 20z"/></symbol><symbol id="i-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8h13l-1 12.5h-11z"/><path d="M9 10.5V7a3 3 0 0 1 6 0v3.5"/></symbol><symbol id="i-gift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M12 8v12.5M19 12v7.5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V12"/><path d="M12 8S10.5 3.5 8 3.5a2.25 2.25 0 0 0 0 4.5M12 8s1.5-4.5 4-4.5a2.25 2.25 0 0 1 0 4.5"/></symbol><symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19M6.5 14.5h4"/></symbol><symbol id="i-laptop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="5" width="15" height="10.5" rx="1.5"/><path d="M2.5 19h19"/></symbol><symbol id="i-sofa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11V8a2.5 2.5 0 0 1 2.5-2.5h9A2.5 2.5 0 0 1 19 8v3"/><path d="M3 13a2 2 0 0 1 4 0v1.5h10V13a2 2 0 0 1 4 0v5H3z"/><path d="M5 18v2M19 18v2"/></symbol><symbol id="i-car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16.5H3.5v-4l2-5.5h13l2 5.5v4H19"/><path d="M3.5 12.5h17"/><circle cx="7.5" cy="16.5" r="2"/><circle cx="16.5" cy="16.5" r="2"/><path d="M9.5 16.5h5"/></symbol><symbol id="i-dumbbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/></symbol><symbol id="i-shirt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3.5 3 6.5l2 4.5 2.5-1v10.5h9V10l2.5 1 2-4.5-5.5-3a3.5 3.5 0 0 1-7 0z"/></symbol><symbol id="i-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5 12.8 8.2 17.5 10l-4.7 1.8L11 16.5l-1.8-4.7L4.5 10l4.7-1.8z"/><path d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></symbol><symbol id="i-wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.8 16a5 5 0 0 1 6.4 0"/><circle cx="12" cy="19.3" r=".9" fill="currentColor"/></symbol><symbol id="i-plane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 13.5 4 11l1.5-1.5 7 .5 4.5-4.5c1-1 2.5-1.3 3.2-.7.6.7.3 2.2-.7 3.2L15 12.5l.5 7L14 21l-2.5-6.5L8 18v2.5L6.5 22 5 18l-4-1.5L2.5 15H5z"/></symbol><symbol id="i-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5V6.5a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v2a3.5 3.5 0 0 0 0 7v2a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1v-2a3.5 3.5 0 0 0 0-7z"/><path d="M14.5 5.5v2M14.5 11v2M14.5 16.5v2"/></symbol><symbol id="i-cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9.5h12v5a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5z"/><path d="M16.5 11h1.5a2.5 2.5 0 0 1 0 5h-1.8M8 3.5v2.5M11 3.5v2.5M14 3.5v2.5"/></symbol><symbol id="i-coins" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="9" cy="7" rx="5.5" ry="2.5"/><path d="M3.5 7v4c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5V7"/><path d="M9.5 15.6c.8 1.1 3 1.9 5.5 1.9 3 0 5.5-1.1 5.5-2.5v-4c0-1.2-1.8-2.2-4.3-2.4"/><path d="M20.5 15v4c0 1.4-2.5 2.5-5.5 2.5S9.5 20.4 9.5 19v-3.4"/></symbol><symbol id="i-smile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 14a4.2 4.2 0 0 0 7 0"/><path d="M9 9.8h.01M15 9.8h.01" stroke-width="2.4"/></symbol><symbol id="i-cap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 9 12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11v5c3 2.2 8 2.2 11 0v-5M21.5 9v5.5"/></symbol><symbol id="i-clover" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-3.5-1-5.5-3.2-4.5-5.5s4-1.6 4.5.5c.5-2.1 3.5-2.8 4.5-.5s-1 4.5-4.5 5.5zm0 0c-1 3.5-3.2 5.5-5.5 4.5s-1.6-4 .5-4.5M12 12c1 3.5 3.2 5.5 5.5 4.5s1.6-4-.5-4.5M12 12c1.5 3 2 6 1 9"/></symbol><symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12z"/></symbol><symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></symbol><symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4.5h12l-2.5 4 2.5 4H5"/></symbol><symbol id="i-mountain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 19.5 9 8.5l3.5 5.5 2.5-3.5 6.5 9z"/><path d="M7 12.5l2 1.5 1.5-1.2"/></symbol><symbol id="i-linkedin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7.5 10.5v6M7.5 7.5v.01M11.5 16.5v-6M11.5 13c0-1.6 1-2.5 2.3-2.5s2.2.9 2.2 2.5v3.5"/></symbol><symbol id="i-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.3 6.7v.01" stroke-width="2.4"/></symbol><symbol id="i-facebook" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 8.5H17V5h-2.5A3.5 3.5 0 0 0 11 8.5V11H8.5v3.5H11V21h3.5v-6.5H17l.5-3.5h-3V9a.5.5 0 0 1 .5-.5z"/></symbol></defs></svg><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="logo" viewBox="0 0 1167.48 312.7"><g fill="var(--logo-type, currentColor)"><path d="M254.55,281.53c-1.71-5.7-2.66-12.54-2.66-19.38,0-7.22.95-14.44,2.66-20.14,5.89-18.62,21.66-30.02,43.13-30.02s36.29,11.4,42.18,29.83c1.9,5.89,3.04,12.92,3.04,19.95s-.95,13.49-2.66,19.19c-5.51,19.57-21.28,31.73-42.75,31.73s-37.43-11.97-42.94-31.16ZM314.4,275.45c.95-3.8,1.52-8.55,1.52-13.3,0-5.13-.57-10.07-1.52-13.49-2.47-8.55-8.55-13.68-17.1-13.68s-14.44,5.32-16.91,13.68c-1.14,3.42-1.52,8.36-1.52,13.49s.38,9.88,1.33,13.3c2.47,8.74,8.55,14.25,17.29,14.25s14.44-5.51,16.91-14.25Z"/><path d="M424.6,214.84c1.14.57,1.33,1.71,1.14,2.85l-3.8,21.66c-.19,1.52-1.14,1.9-2.66,1.33-2.66-.76-6.65-1.33-11.02-.57-8.55.76-16.34,6.65-16.34,16.91v51.87c0,1.33-.95,2.28-2.28,2.28h-22.23c-1.33,0-2.28-.95-2.28-2.28v-93.1c0-1.33.95-2.28,2.28-2.28h22.23c1.33,0,2.28.95,2.28,2.28v7.22c0,.76.57,1.14.95.57,4.75-7.03,11.78-11.4,21.09-11.4,4.94,0,8.36,1.14,10.64,2.66Z"/><path d="M495.85,234.98h-18.24c-.57,0-.95.38-.95.95v40.28c0,8.36,3.23,12.35,10.83,12.35h6.46c1.33,0,2.28.95,2.28,2.28v18.05c0,1.33-.76,2.28-2.28,2.47-3.99.19-7.98.38-11.59.38-19.38,0-31.35-4.56-31.35-24.89v-50.92c0-.57-.38-.95-.95-.95h-11.02c-1.33,0-2.28-.95-2.28-2.28v-16.91c0-1.33.95-2.28,2.28-2.28h11.02c.57,0,.95-.38.95-.95v-22.61c0-1.33.95-2.28,2.28-2.28h21.09c1.33,0,2.28.95,2.28,2.28v22.61c0,.57.38.95.95.95h18.24c1.33,0,2.28.95,2.28,2.28v16.91c0,1.33-.95,2.28-2.28,2.28Z"/><path d="M603.57,268.42c-.19,1.52-1.14,2.28-2.47,2.28h-58.71c-.57,0-1.14.38-.95.95.57,2.85,1.33,5.32,2.28,7.6,3.04,6.46,9.12,10.64,20.14,10.64,8.74-.19,14.82-4.18,19-9.88.95-1.33,2.09-1.52,3.23-.38l13.49,13.49c.95.95,1.14,2.09.19,3.23-8.36,10.64-22.42,16.53-38.38,16.34-21.66,0-36.67-10.83-43.13-28.12-2.66-6.46-3.99-14.25-3.99-23.18-.19-7.22.76-14.25,2.66-20.14,5.89-17.86,21.28-29.45,41.42-29.45,26.03,0,41.04,16.72,44.46,40.47.76,5.13.95,10.45.76,16.15ZM542.77,246.19c-.57,1.9-.95,3.8-1.33,6.08,0,.57.38.95.95.95h32.87c.57,0,.95-.38.76-.95-.38-2.09-.57-3.8-.95-5.32-2.28-7.6-8.17-11.97-16.72-11.97s-13.11,3.99-15.58,11.21Z"/><path d="M624.47,187.48c0-8.93,6.27-15.01,14.82-15.01s15.01,6.08,15.01,15.01-6.27,15.01-15.01,15.01-14.82-6.46-14.82-15.01ZM625.61,308.89v-93.29c0-1.33.95-2.28,2.28-2.28h22.23c1.33,0,2.28.95,2.28,2.28v93.29c0,1.33-.95,2.28-2.28,2.28h-22.23c-1.33,0-2.28-.95-2.28-2.28Z"/><path d="M679.57,308.89v-128.44c0-1.33.95-2.28,2.28-2.28h22.23c1.33,0,2.28.95,2.28,2.28v128.44c0,1.33-.95,2.28-2.28,2.28h-22.23c-1.33,0-2.28-.95-2.28-2.28Z"/><path d="M817.89,268.42c-.19,1.52-1.14,2.28-2.47,2.28h-58.71c-.57,0-1.14.38-.95.95.57,2.85,1.33,5.32,2.28,7.6,3.04,6.46,9.12,10.64,20.14,10.64,8.74-.19,14.82-4.18,19-9.88.95-1.33,2.09-1.52,3.23-.38l13.49,13.49c.95.95,1.14,2.09.19,3.23-8.36,10.64-22.42,16.53-38.38,16.34-21.66,0-36.67-10.83-43.13-28.12-2.66-6.46-3.99-14.25-3.99-23.18-.19-7.22.76-14.25,2.66-20.14,5.89-17.86,21.28-29.45,41.42-29.45,26.03,0,41.04,16.72,44.46,40.47.76,5.13.95,10.45.76,16.15ZM757.09,246.19c-.57,1.9-.95,3.8-1.33,6.08,0,.57.38.95.95.95h32.87c.57,0,.95-.38.76-.95-.38-2.09-.57-3.8-.95-5.32-2.28-7.6-8.17-11.97-16.72-11.97s-13.11,3.99-15.58,11.21Z"/><path d="M838.22,296.92c0-8.74,6.27-14.82,15.01-14.82s15.01,6.08,15.01,14.82-6.46,15.01-15.01,15.01-15.01-6.27-15.01-15.01Z"/><path d="M980.33,246.57v62.32c0,1.33-.95,2.28-2.28,2.28h-22.23c-1.33,0-2.28-.95-2.28-2.28v-56.81c0-10.07-6.08-17.1-15.39-17.1s-15.77,6.84-15.77,17.1v56.81c0,1.33-.95,2.28-2.28,2.28h-22.23c-1.33,0-2.28-.95-2.28-2.28v-93.1c0-1.33.95-2.28,2.28-2.28h22.23c1.33,0,2.28.95,2.28,2.28v6.65c0,.76.57,1.14.95.57,5.32-7.6,13.11-11.02,23.18-11.02,19.95,0,33.82,12.92,33.82,34.58Z"/><path d="M1091.49,268.42c-.19,1.52-1.14,2.28-2.47,2.28h-58.71c-.57,0-1.14.38-.95.95.57,2.85,1.33,5.32,2.28,7.6,3.04,6.46,9.12,10.64,20.14,10.64,8.74-.19,14.82-4.18,19-9.88.95-1.33,2.09-1.52,3.23-.38l13.49,13.49c.95.95,1.14,2.09.19,3.23-8.36,10.64-22.42,16.53-38.38,16.34-21.66,0-36.67-10.83-43.13-28.12-2.66-6.46-3.99-14.25-3.99-23.18-.19-7.22.76-14.25,2.66-20.14,5.89-17.86,21.28-29.45,41.42-29.45,26.03,0,41.04,16.72,44.46,40.47.76,5.13.95,10.45.76,16.15ZM1030.68,246.19c-.57,1.9-.95,3.8-1.33,6.08,0,.57.38.95.95.95h32.87c.57,0,.95-.38.76-.95-.38-2.09-.57-3.8-.95-5.32-2.28-7.6-8.17-11.97-16.72-11.97s-13.11,3.99-15.58,11.21Z"/><path d="M1165.2,234.98h-18.24c-.57,0-.95.38-.95.95v40.28c0,8.36,3.23,12.35,10.83,12.35h6.46c1.33,0,2.28.95,2.28,2.28v18.05c0,1.33-.76,2.28-2.28,2.47-3.99.19-7.98.38-11.59.38-19.38,0-31.35-4.56-31.35-24.89v-50.92c0-.57-.38-.95-.95-.95h-11.02c-1.33,0-2.28-.95-2.28-2.28v-16.91c0-1.33.95-2.28,2.28-2.28h11.02c.57,0,.95-.38.95-.95v-22.61c0-1.33.95-2.28,2.28-2.28h21.09c1.33,0,2.28.95,2.28,2.28v22.61c0,.57.38.95.95.95h18.24c1.33,0,2.28.95,2.28,2.28v16.91c0,1.33-.95,2.28-2.28,2.28Z"/></g><g fill="var(--logo-mark, currentColor)"><path d="M276.58,2.43l60.43,42.32c6.06,4.25,7.54,12.6,3.29,18.67l-170.55,243.57c-4.86,6.94-14.85,7.69-20.69,1.55l-51.89-54.51c-4.4-4.62-4.93-11.7-1.27-16.93L257.91,5.72c4.25-6.06,12.6-7.54,18.67-3.29Z"/><path d="M121.29,133.22H13.43c-11.78,0-17.83,14.11-9.71,22.65l62.15,65.28c5.84,6.13,15.83,5.38,20.69-1.55l45.71-65.28c6.22-8.88-.13-21.09-10.98-21.09Z"/></g></symbol><symbol id="mark" viewBox="120 130 535 495"><g fill="var(--mark, currentColor)"><path class="mark__long" d="M545.9,148.1l90.2,63.1c9,6.4,11.2,18.8,4.9,27.9l-254.5,363.4c-7.2,10.3-22.1,11.5-30.8,2.3l-77.5-81.3c-6.5-6.9-7.3-17.5-1.9-25.3l241.8-345.2c6.3-9.1,18.8-11.3,27.8-4.9h0Z"/><path class="mark__short" d="M314.2,343.2h-160.9c-17.6,0-26.6,21.1-14.5,33.8l92.7,97.4c8.7,9.2,23.6,8.1,30.9-2.3l68.2-97.4c9.3-13.3-.2-31.5-16.4-31.5H314.2Z"/></g></symbol><symbol id="qr" viewBox="0 0 29 29"><path fill="#142730" shape-rendering="crispEdges" d="M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM12 0h1v1h-1zM14 0h1v1h-1zM19 0h1v1h-1zM20 0h1v1h-1zM22 0h1v1h-1zM23 0h1v1h-1zM24 0h1v1h-1zM25 0h1v1h-1zM26 0h1v1h-1zM27 0h1v1h-1zM28 0h1v1h-1zM0 1h1v1h-1zM6 1h1v1h-1zM9 1h1v1h-1zM11 1h1v1h-1zM15 1h1v1h-1zM17 1h1v1h-1zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM10 2h1v1h-1zM11 2h1v1h-1zM12 2h1v1h-1zM13 2h1v1h-1zM14 2h1v1h-1zM19 2h1v1h-1zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h1v1h-1zM25 2h1v1h-1zM26 2h1v1h-1zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM6 3h1v1h-1zM10 3h1v1h-1zM13 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM18 3h1v1h-1zM20 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM25 3h1v1h-1zM26 3h1v1h-1zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM12 4h1v1h-1zM13 4h1v1h-1zM14 4h1v1h-1zM15 4h1v1h-1zM17 4h1v1h-1zM19 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM25 4h1v1h-1zM26 4h1v1h-1zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM10 5h1v1h-1zM12 5h1v1h-1zM16 5h1v1h-1zM18 5h1v1h-1zM19 5h1v1h-1zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM23 6h1v1h-1zM24 6h1v1h-1zM25 6h1v1h-1zM26 6h1v1h-1zM27 6h1v1h-1zM28 6h1v1h-1zM8 7h1v1h-1zM9 7h1v1h-1zM10 7h1v1h-1zM13 7h1v1h-1zM14 7h1v1h-1zM17 7h1v1h-1zM20 7h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM11 8h1v1h-1zM15 8h1v1h-1zM19 8h1v1h-1zM21 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM1 9h1v1h-1zM4 9h1v1h-1zM5 9h1v1h-1zM7 9h1v1h-1zM8 9h1v1h-1zM11 9h1v1h-1zM13 9h1v1h-1zM18 9h1v1h-1zM19 9h1v1h-1zM20 9h1v1h-1zM21 9h1v1h-1zM22 9h1v1h-1zM23 9h1v1h-1zM24 9h1v1h-1zM25 9h1v1h-1zM26 9h1v1h-1zM28 9h1v1h-1zM3 10h1v1h-1zM6 10h1v1h-1zM8 10h1v1h-1zM11 10h1v1h-1zM14 10h1v1h-1zM15 10h1v1h-1zM16 10h1v1h-1zM17 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM25 10h1v1h-1zM27 10h1v1h-1zM0 11h1v1h-1zM1 11h1v1h-1zM2 11h1v1h-1zM10 11h1v1h-1zM18 11h1v1h-1zM20 11h1v1h-1zM24 11h1v1h-1zM28 11h1v1h-1zM0 12h1v1h-1zM1 12h1v1h-1zM3 12h1v1h-1zM5 12h1v1h-1zM6 12h1v1h-1zM9 12h1v1h-1zM10 12h1v1h-1zM18 12h1v1h-1zM19 12h1v1h-1zM20 12h1v1h-1zM21 12h1v1h-1zM23 12h1v1h-1zM25 12h1v1h-1zM26 12h1v1h-1zM27 12h1v1h-1zM28 12h1v1h-1zM2 13h1v1h-1zM9 13h1v1h-1zM19 13h1v1h-1zM22 13h1v1h-1zM23 13h1v1h-1zM25 13h1v1h-1zM26 13h1v1h-1zM28 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM7 14h1v1h-1zM18 14h1v1h-1zM19 14h1v1h-1zM20 14h1v1h-1zM21 14h1v1h-1zM23 14h1v1h-1zM24 14h1v1h-1zM25 14h1v1h-1zM27 14h1v1h-1zM28 14h1v1h-1zM1 15h1v1h-1zM2 15h1v1h-1zM4 15h1v1h-1zM5 15h1v1h-1zM18 15h1v1h-1zM21 15h1v1h-1zM24 15h1v1h-1zM25 15h1v1h-1zM27 15h1v1h-1zM28 15h1v1h-1zM0 16h1v1h-1zM2 16h1v1h-1zM3 16h1v1h-1zM6 16h1v1h-1zM18 16h1v1h-1zM20 16h1v1h-1zM21 16h1v1h-1zM23 16h1v1h-1zM24 16h1v1h-1zM25 16h1v1h-1zM27 16h1v1h-1zM2 17h1v1h-1zM7 17h1v1h-1zM8 17h1v1h-1zM9 17h1v1h-1zM10 17h1v1h-1zM20 17h1v1h-1zM23 17h1v1h-1zM25 17h1v1h-1zM0 18h1v1h-1zM3 18h1v1h-1zM4 18h1v1h-1zM6 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM13 18h1v1h-1zM16 18h1v1h-1zM17 18h1v1h-1zM18 18h1v1h-1zM22 18h1v1h-1zM23 18h1v1h-1zM24 18h1v1h-1zM26 18h1v1h-1zM3 19h1v1h-1zM4 19h1v1h-1zM7 19h1v1h-1zM10 19h1v1h-1zM11 19h1v1h-1zM13 19h1v1h-1zM14 19h1v1h-1zM15 19h1v1h-1zM16 19h1v1h-1zM18 19h1v1h-1zM19 19h1v1h-1zM21 19h1v1h-1zM22 19h1v1h-1zM25 19h1v1h-1zM26 19h1v1h-1zM1 20h1v1h-1zM2 20h1v1h-1zM4 20h1v1h-1zM5 20h1v1h-1zM6 20h1v1h-1zM7 20h1v1h-1zM10 20h1v1h-1zM11 20h1v1h-1zM14 20h1v1h-1zM15 20h1v1h-1zM20 20h1v1h-1zM21 20h1v1h-1zM22 20h1v1h-1zM23 20h1v1h-1zM24 20h1v1h-1zM26 20h1v1h-1zM8 21h1v1h-1zM10 21h1v1h-1zM12 21h1v1h-1zM14 21h1v1h-1zM16 21h1v1h-1zM18 21h1v1h-1zM20 21h1v1h-1zM24 21h1v1h-1zM25 21h1v1h-1zM28 21h1v1h-1zM0 22h1v1h-1zM1 22h1v1h-1zM2 22h1v1h-1zM3 22h1v1h-1zM4 22h1v1h-1zM5 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM9 22h1v1h-1zM10 22h1v1h-1zM12 22h1v1h-1zM14 22h1v1h-1zM15 22h1v1h-1zM18 22h1v1h-1zM19 22h1v1h-1zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM26 22h1v1h-1zM27 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM9 23h1v1h-1zM11 23h1v1h-1zM16 23h1v1h-1zM17 23h1v1h-1zM20 23h1v1h-1zM24 23h1v1h-1zM0 24h1v1h-1zM2 24h1v1h-1zM3 24h1v1h-1zM4 24h1v1h-1zM6 24h1v1h-1zM9 24h1v1h-1zM11 24h1v1h-1zM13 24h1v1h-1zM15 24h1v1h-1zM20 24h1v1h-1zM21 24h1v1h-1zM22 24h1v1h-1zM23 24h1v1h-1zM24 24h1v1h-1zM25 24h1v1h-1zM26 24h1v1h-1zM28 24h1v1h-1zM0 25h1v1h-1zM2 25h1v1h-1zM3 25h1v1h-1zM4 25h1v1h-1zM6 25h1v1h-1zM8 25h1v1h-1zM10 25h1v1h-1zM14 25h1v1h-1zM15 25h1v1h-1zM16 25h1v1h-1zM19 25h1v1h-1zM24 25h1v1h-1zM25 25h1v1h-1zM26 25h1v1h-1zM27 25h1v1h-1zM0 26h1v1h-1zM2 26h1v1h-1zM3 26h1v1h-1zM4 26h1v1h-1zM6 26h1v1h-1zM8 26h1v1h-1zM10 26h1v1h-1zM14 26h1v1h-1zM17 26h1v1h-1zM18 26h1v1h-1zM20 26h1v1h-1zM23 26h1v1h-1zM25 26h1v1h-1zM28 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM10 27h1v1h-1zM11 27h1v1h-1zM12 27h1v1h-1zM14 27h1v1h-1zM16 27h1v1h-1zM18 27h1v1h-1zM20 27h1v1h-1zM24 27h1v1h-1zM25 27h1v1h-1zM27 27h1v1h-1zM0 28h1v1h-1zM1 28h1v1h-1zM2 28h1v1h-1zM3 28h1v1h-1zM4 28h1v1h-1zM5 28h1v1h-1zM6 28h1v1h-1zM12 28h1v1h-1zM15 28h1v1h-1zM18 28h1v1h-1zM20 28h1v1h-1zM21 28h1v1h-1zM23 28h1v1h-1zM27 28h1v1h-1z"/><rect x="11.62" y="11.62" width="5.76" height="5.76" rx="1.38" fill="#fff"/><svg x="12.43" y="12.43" width="4.15" height="4.15" viewBox="120 130 535 495"><g fill="#1c87b8"><path class="mark__long" d="M545.9,148.1l90.2,63.1c9,6.4,11.2,18.8,4.9,27.9l-254.5,363.4c-7.2,10.3-22.1,11.5-30.8,2.3l-77.5-81.3c-6.5-6.9-7.3-17.5-1.9-25.3l241.8-345.2c6.3-9.1,18.8-11.3,27.8-4.9h0Z"/><path class="mark__short" d="M314.2,343.2h-160.9c-17.6,0-26.6,21.1-14.5,33.8l92.7,97.4c8.7,9.2,23.6,8.1,30.9-2.3l68.2-97.4c9.3-13.3-.2-31.5-16.4-31.5H314.2Z"/></g></svg></symbol></defs></svg>
+
+<!-- =========================================== Weiterleitung (nur Smartphone) -->
+<div class="redirect" role="status" aria-live="polite">
+  <svg class="redirect__mark check-draw" viewBox="120 130 535 495" aria-hidden="true"><path class="mark__long" d="M545.9,148.1l90.2,63.1c9,6.4,11.2,18.8,4.9,27.9l-254.5,363.4c-7.2,10.3-22.1,11.5-30.8,2.3l-77.5-81.3c-6.5-6.9-7.3-17.5-1.9-25.3l241.8-345.2c6.3-9.1,18.8-11.3,27.8-4.9h0Z"/><path class="mark__short" d="M314.2,343.2h-160.9c-17.6,0-26.6,21.1-14.5,33.8l92.7,97.4c8.7,9.2,23.6,8.1,30.9-2.3l68.2-97.4c9.3-13.3-.2-31.5-16.4-31.5H314.2Z"/></svg>
+  <p class="redirect__title">
+    <span class="only-ios">Wir öffnen den App Store …</span>
+    <span class="only-android">Wir öffnen Google Play …</span>
+  </p>
+  <span class="redirect__bar" aria-hidden="true"><i></i></span>
+  <a class="btn btn--white redirect__btn" href="https://apps.apple.com/de/app/vorteile-net/id6807748597" data-store="auto" data-medium="redirect-button">
+    <span class="only-ios">App Store öffnen</span><span class="only-android">Google Play öffnen</span>
+  </a>
+  <button class="redirect__stay" type="button" data-stay>Lieber erst die Seite ansehen</button>
+</div>
+
+<div class="progress" aria-hidden="true"><i></i></div>
+
+<!-- =========================================== Kopfzeile -->
+<header class="nav" data-nav>
+  <div class="nav__inner container">
+    <a class="nav__logo" href="#top" aria-label="vorteile.net – zum Seitenanfang">
+      <svg viewBox="0 0 1167.48 312.7" aria-hidden="true"><use href="#logo"/></svg>
+    </a>
+    <nav class="nav__links" aria-label="Hauptnavigation">
+      <a href="#gewinnspiel">Gewinnspiel</a>
+      <a href="#deals">Deals</a>
+      <a href="#marken">Marken</a>
+      <a href="#app">Die App</a>
+    </nav>
+    <a class="btn btn--nav" href="#download" data-store="auto" data-medium="nav">
+      <svg class="i" aria-hidden="true"><use href="#i-download"/></svg><span>App laden</span>
+    </a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- =========================================== Hero -->
+<section class="hero">
+  <div class="hero__panel">
+    <div class="hero__bg" aria-hidden="true">
+      <span class="aurora aurora--1"></span><span class="aurora aurora--2"></span><span class="aurora aurora--3"></span>
+      <span class="hero__dots"></span>
+      <svg class="hero__watermark" viewBox="120 130 535 495"><use href="#mark"/></svg>
+    </div>
+
+    <div class="hero__grid container">
+      <div class="hero__copy">
+        <a class="pill-live" href="#gewinnspiel" data-intro="1">
+          <span class="pill-live__dot"></span>Neu: Die vorteile.net App<span class="pill-live__sep"></span><b>VW Tiguan gewinnen</b>
+          <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg>
+        </a>
+        <h1 class="hero__title">
+          <span class="line"><span class="word" data-intro="2">Deine</span> <span class="word" data-intro="2">Vorteile.</span></span>
+          <span class="line line--accent"><span class="word" data-intro="3">Jetzt</span> <span class="word" data-intro="3">in</span> <span class="word" data-intro="3">der</span> <span class="word" data-intro="3">App.</span>
+            <svg class="hero__swoosh" viewBox="0 0 420 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 18C90 7 220 3 416 10"/></svg>
+          </span>
+        </h1>
+        <p class="hero__lead" data-intro="4">Exklusive Rabatte bei über 450 Marken, die Deals der Woche, Gutscheinwelt und Vorteils-Shop – ab sofort immer in deiner Hosentasche.</p>
+
+        <div class="badges" data-intro="5">
+          <a class="badge badge--ios" href="https://apps.apple.com/de/app/vorteile-net/id6807748597" data-store="ios" data-medium="hero" rel="noopener">
+            <img src="assets/img/brand/app-store.svg" alt="Download on the App Store" width="161" height="54">
+          </a>
+          <a class="badge badge--android" href="https://play.google.com/store/apps/details?id=net.vorteile&amp;hl=de" data-store="android" data-medium="hero" rel="noopener">
+            <img src="assets/img/brand/google-play.svg" alt="Get it on Google Play" width="180" height="54">
+          </a>
+        </div>
+
+        <div class="hero__qr" data-intro="6">
+          <span class="qr qr--sm"><svg viewBox="0 0 29 29" role="img" aria-label="QR-Code zu app.vorteile.net"><use href="#qr"/></svg></span>
+          <p><b>Oder einfach scannen.</b><br>Handy-Kamera drauf – wir leiten dich automatisch in den passenden Store.</p>
+        </div>
+
+      </div>
+
+      <div class="hero__stage" data-parallax>
+        <div class="phone" data-depth="0.5" data-intro="phone">
+          <span class="phone__btn phone__btn--a"></span><span class="phone__btn phone__btn--b"></span>
+          <div class="phone__screen">
+            <span class="phone__island"></span>
+            <div class="app">
+              <div class="app__status"><b>9:41</b><span class="app__sys"><i></i><i></i><i></i></span></div>
+              <div class="app__top">
+                <svg class="app__logo" viewBox="0 0 1167.48 312.7" aria-hidden="true"><use href="#logo"/></svg>
+                <span class="app__bell"><svg class="i"><use href="#i-bell"/></svg><i>3</i></span>
+              </div>
+              <div class="app__search">Suchen<svg class="i"><use href="#i-search"/></svg></div>
+              <div class="app__pills"><span>Highlights</span><span class="on">Deals der Woche</span><span>NEU</span><span>Technik</span><span>Reisen</span></div>
+              <div class="app__feed">
+                <div class="app__track">
+                  <div class="mini-win"><img src="assets/img/tiguan-sm.webp" alt="" width="719" height="437"><span><small>Gewinnspiel</small><b>VW Tiguan gewinnen</b></span></div><div class="mini-deal"><img src="assets/img/deals/sony.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/sony-logo.webp" alt=""></span><span class="flag-off"><small>bis<br>zu</small>45%</span></span><span class="mini-deal__body"><b>Sony</b><span>Kreativ. Kompakt. Die Welt von Sony Kameras</span></span></div><div class="mini-deal"><img src="assets/img/deals/samsung.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/samsung-logo.webp" alt=""></span><span class="flag-off"><small>bis<br>zu</small>30%</span></span><span class="mini-deal__body"><b>Samsung</b><span>Technologien, die das Leben einfacher machen</span></span></div><div class="mini-deal"><img src="assets/img/deals/oral-b.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/oral-b-logo.webp" alt=""></span><span class="flag-off"><small>bis<br>zu</small>66%</span></span><span class="mini-deal__body"><b>Oral-B</b><span>Premium Zahnpflege Produkte zum exklusiven Vorteils-Preis!</span></span></div><div class="mini-deal"><img src="assets/img/deals/adidas.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/adidas-logo.webp" alt=""></span><span class="flag-off">15%</span></span><span class="mini-deal__body"><b>adidas</b><span>Die Marke mit den drei Streifen, die Ikone</span></span></div><div class="mini-deal"><img src="assets/img/deals/disney.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/disney-logo.webp" alt=""></span><span class="flag-off"><small>bis<br>zu</small>37%</span></span><span class="mini-deal__body"><b>Disney+</b><span>Der ultimative Streaming-Service</span></span></div><div class="mini-deal"><img src="assets/img/deals/ebike-24-com.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/ebike-24-com-logo.webp" alt=""></span><span class="flag-off"><small>bis<br>zu</small>60%</span></span><span class="mini-deal__body"><b>Ebike-24.com</b><span>Jetzt 10% Extra-Rabatt auf Fahrräder, E-Bikes und Zubehör</span></span></div><div class="app__dup" aria-hidden="true"><div class="mini-win"><img src="assets/img/tiguan-sm.webp" alt="" width="719" height="437"><span><small>Gewinnspiel</small><b>VW Tiguan gewinnen</b></span></div><div class="mini-deal"><img src="assets/img/deals/sony.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/sony-logo.webp" alt=""></span><span class="flag-off"><small>bis<br>zu</small>45%</span></span><span class="mini-deal__body"><b>Sony</b><span>Kreativ. Kompakt. Die Welt von Sony Kameras</span></span></div><div class="mini-deal"><img src="assets/img/deals/samsung.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/samsung-logo.webp" alt=""></span><span class="flag-off"><small>bis<br>zu</small>30%</span></span><span class="mini-deal__body"><b>Samsung</b><span>Technologien, die das Leben einfacher machen</span></span></div><div class="mini-deal"><img src="assets/img/deals/oral-b.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/oral-b-logo.webp" alt=""></span><span class="flag-off"><small>bis<br>zu</small>66%</span></span><span class="mini-deal__body"><b>Oral-B</b><span>Premium Zahnpflege Produkte zum exklusiven Vorteils-Preis!</span></span></div><div class="mini-deal"><img src="assets/img/deals/adidas.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/adidas-logo.webp" alt=""></span><span class="flag-off">15%</span></span><span class="mini-deal__body"><b>adidas</b><span>Die Marke mit den drei Streifen, die Ikone</span></span></div><div class="mini-deal"><img src="assets/img/deals/disney.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/disney-logo.webp" alt=""></span><span class="flag-off"><small>bis<br>zu</small>37%</span></span><span class="mini-deal__body"><b>Disney+</b><span>Der ultimative Streaming-Service</span></span></div><div class="mini-deal"><img src="assets/img/deals/ebike-24-com.webp" alt="" width="800" height="400"><span class="mini-deal__flags"><span class="flag-logo"><img src="assets/img/deals/ebike-24-com-logo.webp" alt=""></span><span class="flag-off"><small>bis<br>zu</small>60%</span></span><span class="mini-deal__body"><b>Ebike-24.com</b><span>Jetzt 10% Extra-Rabatt auf Fahrräder, E-Bikes und Zubehör</span></span></div></div>
+                </div>
+              </div>
+              <div class="app__tabbar">
+                <span class="on"><svg class="i"><use href="#i-home"/></svg></span>
+                <span><svg class="i"><use href="#i-grid"/></svg></span>
+                <span><svg class="i"><use href="#i-heart"/></svg></span>
+                <span><svg class="i"><use href="#i-bag"/></svg></span>
+                <span><svg class="i"><use href="#i-user"/></svg></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="float float--push" data-depth="1.1" data-intro="float">
+          <div class="push" data-push-cycle>
+            <span class="push__icon"><svg viewBox="120 130 535 495" aria-hidden="true"><use href="#mark"/></svg></span>
+            <div class="push__body">
+              <span class="push__meta"><b>vorteile.net</b><span>jetzt</span></span>
+              <span class="push__text" data-push-text>Deals der Woche: Sony bis zu 45%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="float float--flag" data-depth="1.5" data-intro="float">
+          <span class="flag-logo"><img src="assets/img/deals/oral-b-logo.webp" alt="Oral-B" width="120" height="60"></span>
+          <span class="flag-off"><small>bis<br>zu</small>66%</span>
+        </div>
+
+        <a class="float float--win" href="#gewinnspiel" data-depth="1.9" data-intro="float">
+          <img src="assets/img/tiguan-sm.webp" alt="" width="719" height="437">
+          <span><small>Gewinnspiel</small><b>VW Tiguan gewinnen</b></span>
+        </a>
+      </div>
+    </div>
+
+    <a class="hero__scroll" href="#gewinnspiel" aria-label="Weiter zum Gewinnspiel"><span></span></a>
+  </div>
+</section>
+
+<!-- =========================================== Gewinnspiel -->
+<section class="win" id="gewinnspiel" data-ende="">
+  <!--
+    Countdown: Teilnahmeschluss als Datum in data-ende eintragen, z. B. data-ende="2026-12-31T23:59:00+01:00".
+    Leer = kein Countdown.
+  -->
+  <div class="win__panel" data-spot>
+    <div class="win__bg" aria-hidden="true"><span class="win__spot"></span><span class="win__beams"></span><span class="win__floor"></span></div>
+    <div class="win__ghost" aria-hidden="true" data-ghost>TIGUAN</div>
+
+    <header class="win__head container">
+      <span class="chip chip--glow" data-reveal><svg class="i" aria-hidden="true"><use href="#i-gift"/></svg>Gewinnspiel</span>
+      <h2 class="win__title" data-reveal>
+        <span class="win__pre">Gewinne einen</span>
+        <span class="win__model">VW Tiguan</span>
+        <span class="win__trim">Sport eTSI DSG</span>
+      </h2>
+      <p class="win__lead" data-reveal>App laden, Push-Benachrichtigungen an, einloggen – mehr musst du nicht tun. Du nimmst automatisch teil.</p>
+      <div class="countdown" data-countdown hidden>
+        <span class="countdown__label">Teilnahmeschluss in</span>
+        <span class="countdown__unit"><b data-cd="d">00</b><small>Tage</small></span>
+        <span class="countdown__unit"><b data-cd="h">00</b><small>Std</small></span>
+        <span class="countdown__unit"><b data-cd="m">00</b><small>Min</small></span>
+        <span class="countdown__unit"><b data-cd="s">00</b><small>Sek</small></span>
+      </div>
+    </header>
+
+    <figure class="win__car" data-car>
+      <img src="assets/img/tiguan.webp" srcset="assets/img/tiguan-sm.webp 719w, assets/img/tiguan.webp 1438w" sizes="(min-width: 1100px) 980px, 94vw" alt="VW Tiguan Sport eTSI DSG in Hellblau" width="1438" height="874" loading="lazy" decoding="async">
+      <figcaption>Abbildung ähnlich</figcaption>
+    </figure>
+
+    <ul class="win__specs container" data-reveal>
+      <li><svg class="i" aria-hidden="true"><use href="#i-bolt"/></svg>eTSI Mild-Hybrid</li>
+      <li><svg class="i" aria-hidden="true"><use href="#i-gear"/></svg>DSG-Automatik</li>
+      <li><svg class="i" aria-hidden="true"><use href="#i-flag"/></svg>Sport-Ausstattung</li>
+    </ul>
+
+    <div class="steps container" data-steps>
+      <h3 class="steps__title" data-reveal>So bist du dabei</h3>
+      <ol class="steps__list">
+        <li class="step" data-step>
+          <span class="step__num">1</span>
+          <span class="step__icon"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg></span>
+          <h4>App herunterladen</h4>
+          <p>Hol dir die vorteile.net App im App Store oder bei Google Play.</p>
+        </li>
+        <li class="step" data-step>
+          <span class="step__num">2</span>
+          <span class="step__icon"><svg class="i" aria-hidden="true"><use href="#i-bell"/></svg></span>
+          <h4>Push-Benachrichtigungen an</h4>
+          <p>Erlaube Mitteilungen – so verpasst du auch keinen Deal mehr.</p>
+        </li>
+        <li class="step" data-step>
+          <span class="step__num">3</span>
+          <span class="step__icon"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg></span>
+          <h4>Einloggen oder registrieren</h4>
+          <p>Melde dich mit deinem Zugang an oder registriere dich neu.</p>
+        </li>
+      </ol>
+      <div class="steps__rail" aria-hidden="true"><i></i></div>
+      <div class="steps__done" data-done>
+        <svg class="check-draw" viewBox="120 130 535 495" aria-hidden="true"><path class="mark__long" d="M545.9,148.1l90.2,63.1c9,6.4,11.2,18.8,4.9,27.9l-254.5,363.4c-7.2,10.3-22.1,11.5-30.8,2.3l-77.5-81.3c-6.5-6.9-7.3-17.5-1.9-25.3l241.8-345.2c6.3-9.1,18.8-11.3,27.8-4.9h0Z"/><path class="mark__short" d="M314.2,343.2h-160.9c-17.6,0-26.6,21.1-14.5,33.8l92.7,97.4c8.7,9.2,23.6,8.1,30.9-2.3l68.2-97.4c9.3-13.3-.2-31.5-16.4-31.5H314.2Z"/></svg>
+        <div><b>Fertig – du bist automatisch dabei!</b><span>Keine extra Anmeldung, kein Formular.</span></div>
+      </div>
+    </div>
+
+    <div class="win__cta container" data-reveal>
+      <div class="badges badges--light">
+        <a class="badge badge--ios" href="https://apps.apple.com/de/app/vorteile-net/id6807748597" data-store="ios" data-medium="gewinnspiel" rel="noopener">
+          <img src="assets/img/brand/app-store.svg" alt="Download on the App Store" width="161" height="54" loading="lazy">
+        </a>
+        <a class="badge badge--android" href="https://play.google.com/store/apps/details?id=net.vorteile&amp;hl=de" data-store="android" data-medium="gewinnspiel" rel="noopener">
+          <img src="assets/img/brand/google-play.svg" alt="Get it on Google Play" width="180" height="54" loading="lazy">
+        </a>
+      </div>
+      <button class="link-btn" type="button" data-open="dlg-terms">Teilnahmebedingungen</button>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================== Marken -->
+<section class="brands" id="marken">
+  <div class="brands__head container">
+    <h2 class="brands__title" data-reveal><b data-count="450" data-suffix="+">450+</b> Marken.<br>Eine App.</h2>
+    <p data-reveal>Von Apple bis Sixt: exklusive Mitarbeiterrabatte bei den Marken, die du wirklich nutzt – sortiert in 15 Welten.</p>
+  </div>
+  <div class="marquee" style="--dur: 70s">
+    <ul class="marquee__track"><li><img src="assets/img/logos/apple.svg" alt="Apple" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/samsung.webp" alt="Samsung" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/sony.webp" alt="Sony" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/dyson.webp" alt="Dyson" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/nintendo.webp" alt="Nintendo" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/bose.svg" alt="Bose" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/google.webp" alt="Google" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/lenovo.webp" alt="Lenovo" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/dell.svg" alt="Dell" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/panasonic.webp" alt="Panasonic" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/gopro.webp" alt="Gopro" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/dji.webp" alt="Dji" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/jbl.svg" alt="Jbl" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/marshall.svg" alt="Marshall" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/teufel.webp" alt="Teufel" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/harman-kardon.webp" alt="Harman Kardon" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/fujifilm.webp" alt="Fujifilm" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/garmin.svg" alt="Garmin" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/philips.webp" alt="Philips" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/rowenta.webp" alt="Rowenta" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/delonghi.webp" alt="De&#x27;Longhi" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/kenwood.webp" alt="Kenwood" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/smeg.webp" alt="Smeg" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/kaercher.webp" alt="Kärcher" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/makita.webp" alt="Makita" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/stihl.webp" alt="Stihl" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/tefal.webp" alt="Tefal" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/wmf.svg" alt="Wmf" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/stanley-1913.webp" alt="Stanley 1913" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/tempur.webp" alt="Tempur" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/emma-matratzen.webp" alt="Emma Matratzen" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/tchibo.webp" alt="Tchibo" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/media-markt-de.webp" alt="Media Markt DE" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/apple.svg" alt="" data-alt="Apple" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/samsung.webp" alt="" data-alt="Samsung" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/sony.webp" alt="" data-alt="Sony" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/dyson.webp" alt="" data-alt="Dyson" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/nintendo.webp" alt="" data-alt="Nintendo" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/bose.svg" alt="" data-alt="Bose" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/google.webp" alt="" data-alt="Google" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/lenovo.webp" alt="" data-alt="Lenovo" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/dell.svg" alt="" data-alt="Dell" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/panasonic.webp" alt="" data-alt="Panasonic" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/gopro.webp" alt="" data-alt="Gopro" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/dji.webp" alt="" data-alt="Dji" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/jbl.svg" alt="" data-alt="Jbl" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/marshall.svg" alt="" data-alt="Marshall" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/teufel.webp" alt="" data-alt="Teufel" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/harman-kardon.webp" alt="" data-alt="Harman Kardon" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/fujifilm.webp" alt="" data-alt="Fujifilm" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/garmin.svg" alt="" data-alt="Garmin" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/philips.webp" alt="" data-alt="Philips" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/rowenta.webp" alt="" data-alt="Rowenta" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/delonghi.webp" alt="" data-alt="De&#x27;Longhi" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/kenwood.webp" alt="" data-alt="Kenwood" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/smeg.webp" alt="" data-alt="Smeg" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/kaercher.webp" alt="" data-alt="Kärcher" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/makita.webp" alt="" data-alt="Makita" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/stihl.webp" alt="" data-alt="Stihl" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/tefal.webp" alt="" data-alt="Tefal" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/wmf.svg" alt="" data-alt="Wmf" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/stanley-1913.webp" alt="" data-alt="Stanley 1913" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/tempur.webp" alt="" data-alt="Tempur" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/emma-matratzen.webp" alt="" data-alt="Emma Matratzen" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/tchibo.webp" alt="" data-alt="Tchibo" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/media-markt-de.webp" alt="" data-alt="Media Markt DE" loading="lazy" decoding="async"></li></ul>
+  </div>
+  <div class="marquee marquee--rev" style="--dur: 80s">
+    <ul class="marquee__track"><li><img src="assets/img/logos/adidas.webp" alt="Adidas" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/nike.webp" alt="Nike" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/puma.webp" alt="Puma" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/bosch.webp" alt="Bosch" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/sixt.webp" alt="Sixt" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/asics.webp" alt="Asics" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/columbia-sportswear.webp" alt="Columbia Sportswear" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/salewa.webp" alt="Salewa" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/thule.webp" alt="Thule" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/tumi.webp" alt="Tumi" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/samsonite.svg" alt="Samsonite" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/eastpak.webp" alt="Eastpak" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/crocs.webp" alt="Crocs" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/birkenstock-professional.webp" alt="Birkenstock Professional" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/montblanc.webp" alt="Montblanc" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/festina.webp" alt="Festina" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/fielmann.webp" alt="Fielmann" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/avis.webp" alt="Avis" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/flixbus.webp" alt="FlixBus" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/deutsche-bahn-de.webp" alt="Deutsche Bahn DE" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/lime.webp" alt="Lime" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/shell.webp" alt="Shell" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/disney.webp" alt="Disney+" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/electronic-arts.webp" alt="Electronic Arts" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/oral-b.webp" alt="Oral-B" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/braun.webp" alt="Braun" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/sharkninja.webp" alt="SharkNinja" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/lands-end.webp" alt="Lands&#x27; End" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/s-oliver.webp" alt="S.Oliver" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/bugatti.webp" alt="bugatti" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/sportscheck.webp" alt="SportScheck" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/outletcity-metzingen.webp" alt="Outletcity Metzingen" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/telekom.webp" alt="Telekom" loading="lazy" decoding="async"></li><li><img src="assets/img/logos/e-on.webp" alt="E.On" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/adidas.webp" alt="" data-alt="Adidas" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/nike.webp" alt="" data-alt="Nike" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/puma.webp" alt="" data-alt="Puma" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/bosch.webp" alt="" data-alt="Bosch" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/sixt.webp" alt="" data-alt="Sixt" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/asics.webp" alt="" data-alt="Asics" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/columbia-sportswear.webp" alt="" data-alt="Columbia Sportswear" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/salewa.webp" alt="" data-alt="Salewa" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/thule.webp" alt="" data-alt="Thule" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/tumi.webp" alt="" data-alt="Tumi" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/samsonite.svg" alt="" data-alt="Samsonite" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/eastpak.webp" alt="" data-alt="Eastpak" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/crocs.webp" alt="" data-alt="Crocs" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/birkenstock-professional.webp" alt="" data-alt="Birkenstock Professional" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/montblanc.webp" alt="" data-alt="Montblanc" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/festina.webp" alt="" data-alt="Festina" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/fielmann.webp" alt="" data-alt="Fielmann" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/avis.webp" alt="" data-alt="Avis" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/flixbus.webp" alt="" data-alt="FlixBus" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/deutsche-bahn-de.webp" alt="" data-alt="Deutsche Bahn DE" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/lime.webp" alt="" data-alt="Lime" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/shell.webp" alt="" data-alt="Shell" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/disney.webp" alt="" data-alt="Disney+" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/electronic-arts.webp" alt="" data-alt="Electronic Arts" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/oral-b.webp" alt="" data-alt="Oral-B" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/braun.webp" alt="" data-alt="Braun" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/sharkninja.webp" alt="" data-alt="SharkNinja" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/lands-end.webp" alt="" data-alt="Lands&#x27; End" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/s-oliver.webp" alt="" data-alt="S.Oliver" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/bugatti.webp" alt="" data-alt="bugatti" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/sportscheck.webp" alt="" data-alt="SportScheck" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/outletcity-metzingen.webp" alt="" data-alt="Outletcity Metzingen" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/telekom.webp" alt="" data-alt="Telekom" loading="lazy" decoding="async"></li><li aria-hidden="true"><img src="assets/img/logos/e-on.webp" alt="" data-alt="E.On" loading="lazy" decoding="async"></li></ul>
+  </div>
+</section>
+
+<!-- =========================================== Deals -->
+<section class="deals" id="deals">
+  <header class="section-head container">
+    <h2 class="title" data-reveal>Unsere Partner-Highlights</h2>
+    <p class="subtitle" data-reveal>Deals, die wir lieben</p>
+  </header>
+
+  <div class="filters container" role="tablist" aria-label="Deals nach Welt filtern" data-reveal>
+    <button class="filter is-active" type="button" role="tab" aria-selected="true" data-filter="alle">Alle</button>
+    <button class="filter" type="button" role="tab" aria-selected="false" data-filter="technik"><svg class="i" aria-hidden="true"><use href="#i-laptop"/></svg>Technik</button>
+    <button class="filter" type="button" role="tab" aria-selected="false" data-filter="home"><svg class="i" aria-hidden="true"><use href="#i-sofa"/></svg>Home &amp; Living</button>
+    <button class="filter" type="button" role="tab" aria-selected="false" data-filter="mobil"><svg class="i" aria-hidden="true"><use href="#i-car"/></svg>Mobilität</button>
+    <button class="filter" type="button" role="tab" aria-selected="false" data-filter="sport"><svg class="i" aria-hidden="true"><use href="#i-dumbbell"/></svg>Sport</button>
+    <button class="filter" type="button" role="tab" aria-selected="false" data-filter="mode"><svg class="i" aria-hidden="true"><use href="#i-shirt"/></svg>Mode</button>
+    <button class="filter" type="button" role="tab" aria-selected="false" data-filter="beauty"><svg class="i" aria-hidden="true"><use href="#i-sparkles"/></svg>Health &amp; Beauty</button>
+  </div>
+
+  <div class="deal-grid container" data-deals>
+    <article class="deal glow" data-kat="technik home"><div class="deal__media"><img src="assets/img/deals/samsung.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/samsung-logo.webp" alt="Samsung" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>30%</span></div><div class="deal__body"><h3>Samsung</h3><p>Technologien, die das Leben einfacher machen</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Samsung" data-deal-logo="samsung-logo.webp" data-deal-pre="bis zu" data-deal-value="30%" aria-label="Samsung – bis zu 30% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="technik"><div class="deal__media"><img src="assets/img/deals/sony.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/sony-logo.webp" alt="Sony" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>45%</span></div><div class="deal__body"><h3>Sony</h3><p>Kreativ. Kompakt. Die Welt von Sony Kameras</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Sony" data-deal-logo="sony-logo.webp" data-deal-pre="bis zu" data-deal-value="45%" aria-label="Sony – bis zu 45% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="technik"><div class="deal__media"><img src="assets/img/deals/disney.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/disney-logo.webp" alt="Disney+" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>37%</span></div><div class="deal__body"><h3>Disney+</h3><p>Der ultimative Streaming-Service</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Disney+" data-deal-logo="disney-logo.webp" data-deal-pre="bis zu" data-deal-value="37%" aria-label="Disney+ – bis zu 37% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mode sport"><div class="deal__media"><img src="assets/img/deals/adidas.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/adidas-logo.webp" alt="adidas" loading="lazy" decoding="async"></span><span class="flag-off">15%</span></div><div class="deal__body"><h3>adidas</h3><p>Die Marke mit den drei Streifen, die Ikone</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="adidas" data-deal-logo="adidas-logo.webp" data-deal-pre="" data-deal-value="15%" aria-label="adidas – 15% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="technik"><div class="deal__media"><img src="assets/img/deals/expressvpn.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/expressvpn-logo.webp" alt="ExpressVPN" loading="lazy" decoding="async"></span><span class="flag-off">83%</span></div><div class="deal__body"><h3>ExpressVPN</h3><p>Der weltweit vertrauenswürdigste VPN-Dienst</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="ExpressVPN" data-deal-logo="expressvpn-logo.webp" data-deal-pre="" data-deal-value="83%" aria-label="ExpressVPN – 83% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home beauty"><div class="deal__media"><img src="assets/img/deals/procter-gamble-vorteils-shop.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/procter-gamble-vorteils-shop-logo.webp" alt="Procter &amp; Gamble Vorteils-Shop" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>66%</span></div><div class="deal__body"><h3>Procter &amp; Gamble Vorteils-Shop</h3><p>Premium Schnäppchen für Haushalt, Reinigung und Körperpflege</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Procter &amp; Gamble Vorteils-Shop" data-deal-logo="procter-gamble-vorteils-shop-logo.webp" data-deal-pre="bis zu" data-deal-value="66%" aria-label="Procter &amp; Gamble Vorteils-Shop – bis zu 66% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mobil"><div class="deal__media"><img src="assets/img/deals/finn-club.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/finn-club-logo.webp" alt="FINN Club" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>3.033€</span></div><div class="deal__body"><h3>FINN Club</h3><p>Auto Abo zu exklusiven Vorteilspreisen</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="FINN Club" data-deal-logo="finn-club-logo.webp" data-deal-pre="bis zu" data-deal-value="3.033€" aria-label="FINN Club – bis zu 3.033€ – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="technik"><div class="deal__media"><img src="assets/img/deals/bitdefender.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/bitdefender-logo.webp" alt="Bitdefender" loading="lazy" decoding="async"></span><span class="flag-off">60%</span></div><div class="deal__body"><h3>Bitdefender</h3><p>Rundumschutz im digitalen Zeitalter</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Bitdefender" data-deal-logo="bitdefender-logo.webp" data-deal-pre="" data-deal-value="60%" aria-label="Bitdefender – 60% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="technik"><div class="deal__media"><img src="assets/img/deals/oral-b.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/oral-b-logo.webp" alt="Oral-B" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>66%</span></div><div class="deal__body"><h3>Oral-B</h3><p>Premium Zahnpflege Produkte zum exklusiven Vorteils-Preis!</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Oral-B" data-deal-logo="oral-b-logo.webp" data-deal-pre="bis zu" data-deal-value="66%" aria-label="Oral-B – bis zu 66% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mobil" data-extra><div class="deal__media"><img src="assets/img/deals/ebike-24-com.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/ebike-24-com-logo.webp" alt="Ebike-24.com" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>60%</span></div><div class="deal__body"><h3>Ebike-24.com</h3><p>Jetzt 10% Extra-Rabatt auf Fahrräder, E-Bikes und Zubehör</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Ebike-24.com" data-deal-logo="ebike-24-com-logo.webp" data-deal-pre="bis zu" data-deal-value="60%" aria-label="Ebike-24.com – bis zu 60% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home beauty" data-extra><div class="deal__media"><img src="assets/img/deals/philips.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/philips-logo.webp" alt="Philips" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>40%</span></div><div class="deal__body"><h3>Philips</h3><p>Exklusive Philips Pflegeprodukte entdecken</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Philips" data-deal-logo="philips-logo.webp" data-deal-pre="bis zu" data-deal-value="40%" aria-label="Philips – bis zu 40% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mode" data-extra><div class="deal__media"><img src="assets/img/deals/crocs.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/crocs-logo.webp" alt="Crocs" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>30%</span></div><div class="deal__body"><h3>Crocs</h3><p>Originell. Vielseitig. Bequem.</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Crocs" data-deal-logo="crocs-logo.webp" data-deal-pre="bis zu" data-deal-value="30%" aria-label="Crocs – bis zu 30% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home" data-extra><div class="deal__media"><img src="assets/img/deals/tramontina.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/tramontina-logo.webp" alt="Tramontina" loading="lazy" decoding="async"></span><span class="flag-off">37%</span></div><div class="deal__body"><h3>Tramontina</h3><p>Steakmesser mit spülmaschinenfesten Echtholzgriffen</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Tramontina" data-deal-logo="tramontina-logo.webp" data-deal-pre="" data-deal-value="37%" aria-label="Tramontina – 37% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mode" data-extra><div class="deal__media"><img src="assets/img/deals/lands-end.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/lands-end-logo.webp" alt="Lands&#x27; End" loading="lazy" decoding="async"></span><span class="flag-off">35%</span></div><div class="deal__body"><h3>Lands&#x27; End</h3><p>Lands‘ End, wo Qualität und Komfort zu Hause sind.</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Lands&#x27; End" data-deal-logo="lands-end-logo.webp" data-deal-pre="" data-deal-value="35%" aria-label="Lands&#x27; End – 35% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home" data-extra><div class="deal__media"><img src="assets/img/deals/berndes.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/berndes-logo.webp" alt="BERNDES" loading="lazy" decoding="async"></span><span class="flag-off">28%</span></div><div class="deal__body"><h3>BERNDES</h3><p>Kochgeschirr mit Qualität seit über 100 Jahren</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="BERNDES" data-deal-logo="berndes-logo.webp" data-deal-pre="" data-deal-value="28%" aria-label="BERNDES – 28% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mobil" data-extra><div class="deal__media"><img src="assets/img/deals/lime.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/lime-logo.webp" alt="Lime" loading="lazy" decoding="async"></span><span class="flag-off">25%</span></div><div class="deal__body"><h3>Lime</h3><p>Flexible, umweltfreundliche Mobilität mit Lime</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Lime" data-deal-logo="lime-logo.webp" data-deal-pre="" data-deal-value="25%" aria-label="Lime – 25% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="beauty" data-extra><div class="deal__media"><img src="assets/img/deals/shop-apotheke-com.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/shop-apotheke-com-logo.webp" alt="shop-apotheke.com" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>25%</span></div><div class="deal__body"><h3>shop-apotheke.com</h3><p>Online-Apotheke</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="shop-apotheke.com" data-deal-logo="shop-apotheke-com-logo.webp" data-deal-pre="bis zu" data-deal-value="25%" aria-label="shop-apotheke.com – bis zu 25% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="sport" data-extra><div class="deal__media"><img src="assets/img/deals/schildkroet.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/schildkroet-logo.webp" alt="Schildkröt" loading="lazy" decoding="async"></span><span class="flag-off">25%</span></div><div class="deal__body"><h3>Schildkröt</h3><p>Der Shop für Sport &amp; Freizeit</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Schildkröt" data-deal-logo="schildkroet-logo.webp" data-deal-pre="" data-deal-value="25%" aria-label="Schildkröt – 25% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="sport" data-extra><div class="deal__media"><img src="assets/img/deals/molten.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/molten-logo.webp" alt="molten" loading="lazy" decoding="async"></span><span class="flag-off">25%</span></div><div class="deal__body"><h3>molten</h3><p>Spezialist für Bälle - gemacht für große Momente</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="molten" data-deal-logo="molten-logo.webp" data-deal-pre="" data-deal-value="25%" aria-label="molten – 25% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mobil" data-extra><div class="deal__media"><img src="assets/img/deals/cupra-formentor.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/cupra-formentor-logo.webp" alt="Cupra Formentor" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>22%</span></div><div class="deal__body"><h3>Cupra Formentor</h3><p>MeinAuto.de ist der führende Internetvermittler von Neuwagen. Interessenten können ihr Wunschfahrzeug aus über 35 Marken und 400 Modellen auswählen.</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Cupra Formentor" data-deal-logo="cupra-formentor-logo.webp" data-deal-pre="bis zu" data-deal-value="22%" aria-label="Cupra Formentor – bis zu 22% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mobil" data-extra><div class="deal__media"><img src="assets/img/deals/mercedes-gebrauchtwagen.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/mercedes-gebrauchtwagen-logo.webp" alt="Mercedes Gebrauchtwagen" loading="lazy" decoding="async"></span><span class="flag-off">550€</span></div><div class="deal__body"><h3>Mercedes Gebrauchtwagen</h3><p>Lieblingsauto gefunden, Sorgen vergessen.</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Mercedes Gebrauchtwagen" data-deal-logo="mercedes-gebrauchtwagen-logo.webp" data-deal-pre="" data-deal-value="550€" aria-label="Mercedes Gebrauchtwagen – 550€ – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home" data-extra><div class="deal__media"><img src="assets/img/deals/grohe.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/grohe.svg" alt="GROHE" loading="lazy" decoding="async"></span><span class="flag-off">20%</span></div><div class="deal__body"><h3>GROHE</h3><p>Entdecke den Testsieger Wassersprudler von GROHE</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="GROHE" data-deal-logo="grohe.svg" data-deal-pre="" data-deal-value="20%" aria-label="GROHE – 20% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mode" data-extra><div class="deal__media"><img src="assets/img/deals/birkenstock-professional.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/birkenstock-professional-logo.webp" alt="BIRKENSTOCK Professional" loading="lazy" decoding="async"></span><span class="flag-off">20%</span></div><div class="deal__body"><h3>BIRKENSTOCK Professional</h3><p>Qualität beginnt an den Füßen</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="BIRKENSTOCK Professional" data-deal-logo="birkenstock-professional-logo.webp" data-deal-pre="" data-deal-value="20%" aria-label="BIRKENSTOCK Professional – 20% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home" data-extra><div class="deal__media"><img src="assets/img/deals/brabantia.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/brabantia-logo.webp" alt="Brabantia" loading="lazy" decoding="async"></span><span class="flag-off">20%</span></div><div class="deal__body"><h3>Brabantia</h3><p>Zeitloses Design für jeden Tag</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Brabantia" data-deal-logo="brabantia-logo.webp" data-deal-pre="" data-deal-value="20%" aria-label="Brabantia – 20% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mode" data-extra><div class="deal__media"><img src="assets/img/deals/spreadshirt.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/spreadshirt-logo.webp" alt="Spreadshirt" loading="lazy" decoding="async"></span><span class="flag-off">25%</span></div><div class="deal__body"><h3>Spreadshirt</h3><p>Über 250 Produkte für eigene Designs &amp; Ideen</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Spreadshirt" data-deal-logo="spreadshirt-logo.webp" data-deal-pre="" data-deal-value="25%" aria-label="Spreadshirt – 25% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home" data-extra><div class="deal__media"><img src="assets/img/deals/stanley-1913.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/stanley-1913-logo.webp" alt="Stanley 1913" loading="lazy" decoding="async"></span><span class="flag-off">15%</span></div><div class="deal__body"><h3>Stanley 1913</h3><p>Stanley 1913. Built for Life™</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Stanley 1913" data-deal-logo="stanley-1913-logo.webp" data-deal-pre="" data-deal-value="15%" aria-label="Stanley 1913 – 15% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home" data-extra><div class="deal__media"><img src="assets/img/deals/kenwood.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/kenwood-logo.webp" alt="Kenwood" loading="lazy" decoding="async"></span><span class="flag-off">15%</span></div><div class="deal__body"><h3>Kenwood</h3><p>Kenwood: Kreativität und Genuss für jede Küche</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Kenwood" data-deal-logo="kenwood-logo.webp" data-deal-pre="" data-deal-value="15%" aria-label="Kenwood – 15% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="sport" data-extra><div class="deal__media"><img src="assets/img/deals/columbia.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/columbia-logo.webp" alt="Columbia" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>15%</span></div><div class="deal__body"><h3>Columbia</h3><p>Outdoor-Bekleidung</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Columbia" data-deal-logo="columbia-logo.webp" data-deal-pre="bis zu" data-deal-value="15%" aria-label="Columbia – bis zu 15% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home" data-extra><div class="deal__media"><img src="assets/img/deals/tempur.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/tempur-logo.webp" alt="TEMPUR" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>88€</span></div><div class="deal__body"><h3>TEMPUR</h3><p>Pioniere des Schlafes, seit 1991</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="TEMPUR" data-deal-logo="tempur-logo.webp" data-deal-pre="bis zu" data-deal-value="88€" aria-label="TEMPUR – bis zu 88€ – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mobil" data-extra><div class="deal__media"><img src="assets/img/deals/shell-v-power-smartdeal.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/shell-v-power-smartdeal-logo.webp" alt="Shell V Power SmartDeal" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>40€</span></div><div class="deal__body"><h3>Shell V Power SmartDeal</h3><p>Premium tanken. Standard zahlen.</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Shell V Power SmartDeal" data-deal-logo="shell-v-power-smartdeal-logo.webp" data-deal-pre="bis zu" data-deal-value="40€" aria-label="Shell V Power SmartDeal – bis zu 40€ – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="mode beauty" data-extra><div class="deal__media"><img src="assets/img/deals/fielmann.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/fielmann-logo.webp" alt="Fielmann" loading="lazy" decoding="async"></span><span class="flag-off">12%</span></div><div class="deal__body"><h3>Fielmann</h3><p>Vom besten Preis und bester Beratung profitieren</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Fielmann" data-deal-logo="fielmann-logo.webp" data-deal-pre="" data-deal-value="12%" aria-label="Fielmann – 12% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="sport" data-extra><div class="deal__media"><img src="assets/img/deals/asics.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/asics-logo.webp" alt="ASICS" loading="lazy" decoding="async"></span><span class="flag-off">10%</span></div><div class="deal__body"><h3>ASICS</h3><p>Laufschuhe und Bekleidung</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="ASICS" data-deal-logo="asics-logo.webp" data-deal-pre="" data-deal-value="10%" aria-label="ASICS – 10% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home" data-extra><div class="deal__media"><img src="assets/img/deals/tchibo.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/tchibo-logo.webp" alt="Tchibo" loading="lazy" decoding="async"></span><span class="flag-off">10%</span></div><div class="deal__body"><h3>Tchibo</h3><p>Wirklich Gutes entdecken</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Tchibo" data-deal-logo="tchibo-logo.webp" data-deal-pre="" data-deal-value="10%" aria-label="Tchibo – 10% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home" data-extra><div class="deal__media"><img src="assets/img/deals/kleines-kraftwerk.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/kleines-kraftwerk-logo.webp" alt="Kleines Kraftwerk" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>42%</span></div><div class="deal__body"><h3>Kleines Kraftwerk</h3><p>Balkonkraftwerke von Kleines Kraftwerk entdecken</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Kleines Kraftwerk" data-deal-logo="kleines-kraftwerk-logo.webp" data-deal-pre="bis zu" data-deal-value="42%" aria-label="Kleines Kraftwerk – bis zu 42% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="home" data-extra><div class="deal__media"><img src="assets/img/deals/saal-digital.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/saal-digital.svg" alt="Saal Digital" loading="lazy" decoding="async"></span><span class="flag-off"><small>bis<br>zu</small>40%</span></div><div class="deal__body"><h3>Saal Digital</h3><p>Alle Lieblingsmomente als hochwertige Fotoprodukte gestalten</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Saal Digital" data-deal-logo="saal-digital.svg" data-deal-pre="bis zu" data-deal-value="40%" aria-label="Saal Digital – bis zu 40% – in der App ansehen"></button></article>
+    <article class="deal glow" data-kat="sport" data-extra><div class="deal__media"><img src="assets/img/deals/nordisk.webp" alt="" width="800" height="400" loading="lazy" decoding="async"></div><div class="deal__flags"><span class="flag-logo"><img src="assets/img/deals/nordisk-logo.webp" alt="Nordisk" loading="lazy" decoding="async"></span><span class="flag-off">25%</span></div><div class="deal__body"><h3>Nordisk</h3><p>Outdoor-Jacken für jeden Tag</p><span class="deal__go">In der App ansehen<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span></div><button class="deal__hit" type="button" data-deal="Nordisk" data-deal-logo="nordisk-logo.webp" data-deal-pre="" data-deal-value="25%" aria-label="Nordisk – 25% – in der App ansehen"></button></article>
+  </div>
+
+  <div class="deals__more container">
+    <button class="btn btn--outline" type="button" data-more>Mehr Deals zeigen<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></button>
+    <a class="btn btn--primary" href="#download" data-store="auto" data-medium="deals" data-more-app hidden>Alle Deals in der App<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+  </div>
+</section>
+
+<!-- =========================================== Die App -->
+<section class="features" id="app">
+  <header class="section-head container">
+    <h2 class="title" data-reveal>Mehr als Rabatte</h2>
+    <p class="subtitle" data-reveal>Alles, was dein Vorteilsportal kann – in deiner Hosentasche</p>
+  </header>
+
+  <div class="bento container">
+    <article class="tile tile--push glow" data-reveal>
+      <div class="tile__copy">
+        <span class="tile__icon"><svg class="i" aria-hidden="true"><use href="#i-bell"/></svg></span>
+        <h3>Kein Deal mehr verpassen</h3>
+        <p>Mit Push-Benachrichtigungen erfährst du als Erstes von den Deals der Woche, Specials und neuen Partnern.</p>
+      </div>
+      <div class="push-stack" data-push-stack aria-hidden="true">
+        <div class="push push--stack"><span class="push__icon"><svg viewBox="120 130 535 495"><use href="#mark"/></svg></span><div class="push__body"><span class="push__meta"><b>vorteile.net</b><span>jetzt</span></span><span class="push__text">Die Deals der Woche 47 sind da 🔥</span></div></div>
+        <div class="push push--stack"><span class="push__icon"><svg viewBox="120 130 535 495"><use href="#mark"/></svg></span><div class="push__body"><span class="push__meta"><b>vorteile.net</b><span>vor 2 Min.</span></span><span class="push__text">Black Week Countdown: Sony bis zu 45%</span></div></div>
+        <div class="push push--stack"><span class="push__icon"><svg viewBox="120 130 535 495"><use href="#mark"/></svg></span><div class="push__body"><span class="push__meta"><b>vorteile.net</b><span>vor 1 Std.</span></span><span class="push__text">Advents-Special: Jetzt Geschenke sichern 🎁</span></div></div>
+        <div class="push push--stack"><span class="push__icon"><svg viewBox="120 130 535 495"><use href="#mark"/></svg></span><div class="push__body"><span class="push__meta"><b>vorteile.net</b><span>gestern</span></span><span class="push__text">Freaky Friday: Nur heute Extra-Rabatte</span></div></div>
+      </div>
+    </article>
+
+    <article class="tile tile--gs glow" data-reveal>
+      <div class="tile__copy">
+        <span class="tile__icon"><svg class="i" aria-hidden="true"><use href="#i-card"/></svg></span>
+        <h3>Gutscheinwelt</h3>
+        <p>Gutscheine von ALDI bis zooplus – direkt aufs Handy.</p>
+      </div>
+      <div class="gs-grid" data-gs aria-hidden="true">
+        <img class="gs-card" src="assets/img/gutscheine/aldi.webp" alt="" width="320" height="320" loading="lazy" style="--i:0"><img class="gs-card" src="assets/img/gutscheine/lieferando.webp" alt="" width="320" height="320" loading="lazy" style="--i:1"><img class="gs-card" src="assets/img/gutscheine/mueller.webp" alt="" width="320" height="320" loading="lazy" style="--i:2"><img class="gs-card" src="assets/img/gutscheine/sixt.webp" alt="" width="320" height="320" loading="lazy" style="--i:3"><img class="gs-card" src="assets/img/gutscheine/tkmaxx.webp" alt="" width="320" height="320" loading="lazy" style="--i:4"><img class="gs-card" src="assets/img/gutscheine/zooplus.webp" alt="" width="320" height="320" loading="lazy" style="--i:5">
+      </div>
+    </article>
+
+    <article class="tile tile--welten glow" data-reveal>
+      <div class="tile__copy">
+        <span class="tile__icon"><svg class="i" aria-hidden="true"><use href="#i-grid"/></svg></span>
+        <h3>15 Welten</h3>
+        <p>Von Mobilfunk über Reisen bis Weiterbildung.</p>
+      </div>
+      <ul class="welten" data-welten aria-label="Alle Welten">
+        <li><svg class="i"><use href="#i-wifi"/></svg>Mobilfunk &amp; Internet</li>
+        <li><svg class="i"><use href="#i-car"/></svg>Mobilität</li>
+        <li><svg class="i"><use href="#i-laptop"/></svg>Technik</li>
+        <li><svg class="i"><use href="#i-sparkles"/></svg>Health &amp; Beauty</li>
+        <li><svg class="i"><use href="#i-sofa"/></svg>Home &amp; Living</li>
+        <li><svg class="i"><use href="#i-plane"/></svg>Reisen</li>
+        <li><svg class="i"><use href="#i-dumbbell"/></svg>Sport</li>
+        <li><svg class="i"><use href="#i-ticket"/></svg>Tickets</li>
+        <li><svg class="i"><use href="#i-shirt"/></svg>Mode &amp; Accessoires</li>
+        <li><svg class="i"><use href="#i-cup"/></svg>Essen &amp; Trinken</li>
+        <li><svg class="i"><use href="#i-coins"/></svg>Finanzwelt</li>
+        <li><svg class="i"><use href="#i-smile"/></svg>Freizeit &amp; Familie</li>
+        <li><svg class="i"><use href="#i-cap"/></svg>Weiterbildung</li>
+        <li><svg class="i"><use href="#i-card"/></svg>Gutscheinwelt</li>
+        <li><svg class="i"><use href="#i-clover"/></svg>Lotterie &amp; Gewinnspiel</li>
+      </ul>
+    </article>
+
+    <article class="tile tile--shop glow" data-reveal>
+      <div class="tile__copy">
+        <span class="tile__icon"><svg class="i" aria-hidden="true"><use href="#i-bag"/></svg></span>
+        <h3>Vorteils-Shop</h3>
+        <p>Markenprodukte bis zu <b>53%</b> unter UVP – bestellt in wenigen Klicks.</p>
+        <a class="tile__link" href="#shop">Was gerade beliebt ist<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+      <div class="shop-peek" aria-hidden="true">
+        <span class="shop-peek__item"><img src="assets/img/products/bose-bt-lautsprecher-soundlink-flex-black.webp" alt="" loading="lazy" width="480" height="480"><i>−21%</i></span><span class="shop-peek__item"><img src="assets/img/products/wera-schraubendrehersatz-kraftform-xxl-12-tlg.webp" alt="" loading="lazy" width="480" height="480"><i>−53%</i></span><span class="shop-peek__item"><img src="assets/img/products/beurer-akku-massage-gun-mg-79-sensitive.webp" alt="" loading="lazy" width="480" height="480"><i>−50%</i></span><span class="shop-peek__item"><img src="assets/img/products/travelite-4-rollen-trolley-l-bali-77cm-mint.webp" alt="" loading="lazy" width="480" height="480"><i>−34%</i></span>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- =========================================== Vorteils-Shop -->
+<section class="shop" id="shop">
+  <header class="section-head section-head--row container">
+    <div>
+      <h2 class="title" data-reveal>Besonders beliebt im Vorteils-Shop</h2>
+      <p class="subtitle" data-reveal>Im Trend</p>
+    </div>
+    <div class="carousel-nav" data-reveal>
+      <button class="round-btn" type="button" data-carousel-prev aria-label="Zurück"><svg class="i" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>
+      <button class="round-btn" type="button" data-carousel-next aria-label="Weiter"><svg class="i" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>
+    </div>
+  </header>
+  <div class="carousel" data-carousel>
+    <ul class="carousel__track" data-track>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/bose-bt-lautsprecher-soundlink-flex-black.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−21%</span></div><b class="product__brand">BOSE</b><span class="product__title">BT Lautsprecher „SoundLink Flex“, black</span><button class="product__hit" type="button" data-deal="BOSE BT Lautsprecher „SoundLink Flex“, black" data-deal-img="assets/img/products/bose-bt-lautsprecher-soundlink-flex-black.webp" data-deal-value="−21%" aria-label="BOSE BT Lautsprecher „SoundLink Flex“, black, 21 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/rowenta-staubsauger-power-xxl-total-clean.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−38%</span></div><b class="product__brand">ROWENTA</b><span class="product__title">Staubsauger „Power XXL Total Clean“</span><button class="product__hit" type="button" data-deal="ROWENTA Staubsauger „Power XXL Total Clean“" data-deal-img="assets/img/products/rowenta-staubsauger-power-xxl-total-clean.webp" data-deal-value="−38%" aria-label="ROWENTA Staubsauger „Power XXL Total Clean“, 38 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/american-tourister-4-rollen-trolley-soundbox-77cm-golden-yellow.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−35%</span></div><b class="product__brand">AMERICAN TOURISTER</b><span class="product__title">4-Rollen-Trolley „Soundbox“, 77cm, golden yellow</span><button class="product__hit" type="button" data-deal="AMERICAN TOURISTER 4-Rollen-Trolley „Soundbox“, 77cm, golden yellow" data-deal-img="assets/img/products/american-tourister-4-rollen-trolley-soundbox-77cm-golden-yellow.webp" data-deal-value="−35%" aria-label="AMERICAN TOURISTER 4-Rollen-Trolley „Soundbox“, 77cm, golden yellow, 35 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/apple-airtag-2-gen-4er-pack.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−15%</span></div><b class="product__brand">APPLE</b><span class="product__title">AirTag 2. Gen, 4er-Pack</span><button class="product__hit" type="button" data-deal="APPLE AirTag 2. Gen, 4er-Pack" data-deal-img="assets/img/products/apple-airtag-2-gen-4er-pack.webp" data-deal-value="−15%" aria-label="APPLE AirTag 2. Gen, 4er-Pack, 15 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/wera-schraubendrehersatz-kraftform-xxl-12-tlg.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−53%</span></div><b class="product__brand">WERA</b><span class="product__title">Schraubendrehersatz „Kraftform XXL“, 12-tlg</span><button class="product__hit" type="button" data-deal="WERA Schraubendrehersatz „Kraftform XXL“, 12-tlg" data-deal-img="assets/img/products/wera-schraubendrehersatz-kraftform-xxl-12-tlg.webp" data-deal-value="−53%" aria-label="WERA Schraubendrehersatz „Kraftform XXL“, 12-tlg, 53 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/beurer-akku-massage-gun-mg-79-sensitive.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−50%</span></div><b class="product__brand">BEURER</b><span class="product__title">Akku-Massage-Gun „MG 79“ Sensitive</span><button class="product__hit" type="button" data-deal="BEURER Akku-Massage-Gun „MG 79“ Sensitive" data-deal-img="assets/img/products/beurer-akku-massage-gun-mg-79-sensitive.webp" data-deal-value="−50%" aria-label="BEURER Akku-Massage-Gun „MG 79“ Sensitive, 50 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/garmin-fahrradcomputer-edge-540.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−28%</span></div><b class="product__brand">GARMIN</b><span class="product__title">Fahrradcomputer „Edge 540“</span><button class="product__hit" type="button" data-deal="GARMIN Fahrradcomputer „Edge 540“" data-deal-img="assets/img/products/garmin-fahrradcomputer-edge-540.webp" data-deal-value="−28%" aria-label="GARMIN Fahrradcomputer „Edge 540“, 28 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/blackroll-faszienrolle-schwarz.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−26%</span></div><b class="product__brand">BLACKROLL</b><span class="product__title">Faszienrolle, schwarz</span><button class="product__hit" type="button" data-deal="BLACKROLL Faszienrolle, schwarz" data-deal-img="assets/img/products/blackroll-faszienrolle-schwarz.webp" data-deal-value="−26%" aria-label="BLACKROLL Faszienrolle, schwarz, 26 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/travelite-4-rollen-trolley-l-bali-77cm-mint.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−34%</span></div><b class="product__brand">TRAVELITE</b><span class="product__title">4-Rollen-Trolley L „Bali“, 77cm, mint</span><button class="product__hit" type="button" data-deal="TRAVELITE 4-Rollen-Trolley L „Bali“, 77cm, mint" data-deal-img="assets/img/products/travelite-4-rollen-trolley-l-bali-77cm-mint.webp" data-deal-value="−34%" aria-label="TRAVELITE 4-Rollen-Trolley L „Bali“, 77cm, mint, 34 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/4smarts-netzladegeraet-gan-flex-pro-100w-travel-kit.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−44%</span></div><b class="product__brand">4smarts</b><span class="product__title">Netzladegerät „GaN Flex Pro“ 100W, &quot;Travel Kit&quot;</span><button class="product__hit" type="button" data-deal="4smarts Netzladegerät „GaN Flex Pro“ 100W, &quot;Travel Kit&quot;" data-deal-img="assets/img/products/4smarts-netzladegeraet-gan-flex-pro-100w-travel-kit.webp" data-deal-value="−44%" aria-label="4smarts Netzladegerät „GaN Flex Pro“ 100W, &quot;Travel Kit&quot;, 44 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/4smarts-solar-powerbank-prepper-12000-mah.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−48%</span></div><b class="product__brand">4smarts</b><span class="product__title">Solar Powerbank „Prepper“, 12000 mAh</span><button class="product__hit" type="button" data-deal="4smarts Solar Powerbank „Prepper“, 12000 mAh" data-deal-img="assets/img/products/4smarts-solar-powerbank-prepper-12000-mah.webp" data-deal-value="−48%" aria-label="4smarts Solar Powerbank „Prepper“, 12000 mAh, 48 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/boompods-btlautsprecher-beachboom-ocean-black.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−25%</span></div><b class="product__brand">Boompods</b><span class="product__title">BTLautsprecher „Beachboom“, ocean black</span><button class="product__hit" type="button" data-deal="Boompods BTLautsprecher „Beachboom“, ocean black" data-deal-img="assets/img/products/boompods-btlautsprecher-beachboom-ocean-black.webp" data-deal-value="−25%" aria-label="Boompods BTLautsprecher „Beachboom“, ocean black, 25 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/trust-fayzo-wireless-gaming-headset-gxt-491.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−33%</span></div><b class="product__brand">TRUST</b><span class="product__title">Fayzo Wireless Gaming Headset „GXT 491“</span><button class="product__hit" type="button" data-deal="TRUST Fayzo Wireless Gaming Headset „GXT 491“" data-deal-img="assets/img/products/trust-fayzo-wireless-gaming-headset-gxt-491.webp" data-deal-value="−33%" aria-label="TRUST Fayzo Wireless Gaming Headset „GXT 491“, 33 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/4smarts-6-in-1-steckdosenleiste-mit-usb-gan-65w.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−42%</span></div><b class="product__brand">4smarts</b><span class="product__title">6-in-1 Steckdosenleiste mit USB „GaN 65W“</span><button class="product__hit" type="button" data-deal="4smarts 6-in-1 Steckdosenleiste mit USB „GaN 65W“" data-deal-img="assets/img/products/4smarts-6-in-1-steckdosenleiste-mit-usb-gan-65w.webp" data-deal-value="−42%" aria-label="4smarts 6-in-1 Steckdosenleiste mit USB „GaN 65W“, 42 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/fiskars-bypass-getriebeastschere-powergearx-lx94-m.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−41%</span></div><b class="product__brand">FISKARS</b><span class="product__title">Bypass-Getriebeastschere „PowerGearX LX94-M“</span><button class="product__hit" type="button" data-deal="FISKARS Bypass-Getriebeastschere „PowerGearX LX94-M“" data-deal-img="assets/img/products/fiskars-bypass-getriebeastschere-powergearx-lx94-m.webp" data-deal-value="−41%" aria-label="FISKARS Bypass-Getriebeastschere „PowerGearX LX94-M“, 41 Prozent unter UVP – in der App ansehen"></button></li>
+      <li class="product glow"><div class="product__img"><img src="assets/img/products/steba-tisch-und-saeulen-grill-mit-haube-vg-250.webp" alt="" width="480" height="480" loading="lazy" decoding="async" draggable="false"><span class="product__off">−30%</span></div><b class="product__brand">STEBA</b><span class="product__title">Tisch- und Säulen-Grill mit Haube „VG 250“</span><button class="product__hit" type="button" data-deal="STEBA Tisch- und Säulen-Grill mit Haube „VG 250“" data-deal-img="assets/img/products/steba-tisch-und-saeulen-grill-mit-haube-vg-250.webp" data-deal-value="−30%" aria-label="STEBA Tisch- und Säulen-Grill mit Haube „VG 250“, 30 Prozent unter UVP – in der App ansehen"></button></li>
+    </ul>
+  </div>
+  <div class="carousel__bar container" aria-hidden="true"><i data-carousel-bar></i></div>
+  <p class="footnote container">Beispiele aus dem Vorteils-Shop, Rabatt gegenüber UVP, Stand November 2026. Angebote und Preise können sich ändern.</p>
+</section>
+
+<!-- =========================================== Download -->
+<section class="cta" id="download">
+  <div class="cta__panel">
+    <div class="cta__bg" aria-hidden="true"><span class="aurora aurora--1"></span><span class="aurora aurora--2"></span><svg class="cta__watermark" viewBox="120 130 535 495"><use href="#mark"/></svg></div>
+    <div class="cta__grid container">
+      <div class="cta__copy">
+        <span class="chip chip--white" data-reveal><svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Jetzt laden</span>
+        <h2 data-reveal>App laden.<br>Tiguan gewinnen.</h2>
+        <p data-reveal>Lade die vorteile.net App, aktiviere Push-Benachrichtigungen und melde dich an – damit bist du automatisch beim Tiguan-Gewinnspiel dabei.</p>
+        <div class="badges" data-reveal>
+          <a class="badge badge--ios" href="https://apps.apple.com/de/app/vorteile-net/id6807748597" data-store="ios" data-medium="download" rel="noopener">
+            <img src="assets/img/brand/app-store.svg" alt="Download on the App Store" width="161" height="54" loading="lazy">
+          </a>
+          <a class="badge badge--android" href="https://play.google.com/store/apps/details?id=net.vorteile&amp;hl=de" data-store="android" data-medium="download" rel="noopener">
+            <img src="assets/img/brand/google-play.svg" alt="Get it on Google Play" width="180" height="54" loading="lazy">
+          </a>
+        </div>
+      </div>
+      <div class="cta__qr" data-reveal>
+        <div class="qr-card glow">
+          <span class="qr-card__corner qr-card__corner--tl"></span><span class="qr-card__corner qr-card__corner--tr"></span>
+          <span class="qr-card__corner qr-card__corner--bl"></span><span class="qr-card__corner qr-card__corner--br"></span>
+          <span class="qr qr--lg"><svg viewBox="0 0 29 29" role="img" aria-label="QR-Code zu app.vorteile.net"><use href="#qr"/></svg></span>
+          <span class="qr-card__scan" aria-hidden="true"></span>
+        </div>
+        <p><b>Scannen &amp; loslegen</b>Funktioniert mit iPhone und Android – wir leiten dich automatisch in den passenden Store.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- =========================================== Fußzeile -->
+<footer class="footer">
+  <div class="footer__inner container">
+    <a class="footer__logo" href="#top" aria-label="vorteile.net – zum Seitenanfang">
+      <svg viewBox="0 0 1167.48 312.7" aria-hidden="true"><use href="#logo"/></svg>
+    </a>
+    <nav class="footer__links" aria-label="Rechtliches">
+      <a href="https://incent.vorteile.net/de/imprint" rel="noopener">Impressum</a>
+      <a href="https://incent.vorteile.net/de/privacy" rel="noopener">Datenschutz</a>
+      <a href="https://incent.vorteile.net/de/terms" rel="noopener">Nutzungsbedingungen</a>
+      <a href="https://incent.vorteile.net/de/account/help" rel="noopener">Hilfe &amp; FAQ</a>
+      <button class="link-btn" type="button" data-open="dlg-terms">Teilnahmebedingungen</button>
+    </nav>
+    <div class="footer__social">
+      <a href="https://linkedin.com/company/incent-corporate-services-gmbh" aria-label="LinkedIn" rel="noopener" target="_blank"><svg class="i" aria-hidden="true"><use href="#i-linkedin"/></svg></a>
+      <a href="https://www.instagram.com/incent_offical" aria-label="Instagram" rel="noopener" target="_blank"><svg class="i" aria-hidden="true"><use href="#i-instagram"/></svg></a>
+      <a href="https://www.facebook.com/people/Incent-Corporate-Services-GmbH/61583964264096" aria-label="Facebook" rel="noopener" target="_blank"><svg class="i" aria-hidden="true"><use href="#i-facebook"/></svg></a>
+    </div>
+    <p class="footer__meta"><span>© 2026 vorteile.net</span><a href="https://incent.de/" rel="noopener" target="_blank">www.incent.de</a><span class="footer__made"><svg class="i" aria-hidden="true"><use href="#i-mountain"/></svg>Made in Allgäu</span></p>
+    <p class="footer__legal">Apple und das Apple-Logo sind Marken der Apple Inc. App Store ist eine Dienstleistungsmarke der Apple Inc. Google Play und das Google Play-Logo sind Marken der Google LLC.</p>
+  </div>
+</footer>
+
+<!-- =========================================== Sticky-Leiste (nur Smartphone, nach dem Hero) -->
+<div class="sticky-app" data-sticky aria-hidden="true">
+  <span class="sticky-app__icon"><svg viewBox="120 130 535 495" aria-hidden="true"><use href="#mark"/></svg></span>
+  <span class="sticky-app__text"><b>vorteile.net App</b><small>Laden &amp; VW Tiguan gewinnen</small></span>
+  <a class="btn btn--primary btn--sm" href="https://apps.apple.com/de/app/vorteile-net/id6807748597" data-store="auto" data-medium="sticky" tabindex="-1">Laden</a>
+</div>
+
+<!-- =========================================== Dialog: App laden (Desktop) -->
+<dialog class="dlg" id="dlg-app" aria-labelledby="dlg-app-title">
+  <button class="dlg__x" type="button" data-close aria-label="Schließen"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button>
+  <div class="dlg__ctx" data-dlg-ctx hidden></div>
+  <h2 id="dlg-app-title" data-dlg-title>Hol dir die vorteile.net App</h2>
+  <p class="dlg__text" data-dlg-text>Scanne den Code mit deinem Smartphone – wir leiten dich automatisch in den passenden Store.</p>
+  <div class="dlg__qr"><span class="qr qr--md"><svg viewBox="0 0 29 29" role="img" aria-label="QR-Code zu app.vorteile.net"><use href="#qr"/></svg></span></div>
+  <div class="badges badges--center">
+    <a class="badge badge--ios" href="https://apps.apple.com/de/app/vorteile-net/id6807748597" data-store="ios" data-medium="dialog" rel="noopener" target="_blank">
+      <img src="assets/img/brand/app-store.svg" alt="Download on the App Store" width="161" height="54" loading="lazy">
+    </a>
+    <a class="badge badge--android" href="https://play.google.com/store/apps/details?id=net.vorteile&amp;hl=de" data-store="android" data-medium="dialog" rel="noopener" target="_blank">
+      <img src="assets/img/brand/google-play.svg" alt="Get it on Google Play" width="180" height="54" loading="lazy">
+    </a>
+  </div>
+  <p class="dlg__note"><svg class="i" aria-hidden="true"><use href="#i-gift"/></svg>Mit der App bist du automatisch beim Gewinnspiel um einen VW Tiguan dabei.</p>
+</dialog>
+
+<!-- =========================================== Dialog: Teilnahmebedingungen -->
+<dialog class="dlg dlg--terms" id="dlg-terms" aria-labelledby="dlg-terms-title">
+  <button class="dlg__x" type="button" data-close aria-label="Schließen"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button>
+  <span class="chip chip--soft"><svg class="i" aria-hidden="true"><use href="#i-gift"/></svg>Gewinnspiel</span>
+  <h2 id="dlg-terms-title">Teilnahmebedingungen</h2>
+  <p>So nimmst du am Gewinnspiel um einen <b>VW Tiguan Sport eTSI DSG</b> teil:</p>
+  <ol class="terms">
+    <li><b>App herunterladen</b><span>Die vorteile.net App im App Store oder bei Google Play laden.</span></li>
+    <li><b>Push-Benachrichtigungen aktivieren</b><span>Mitteilungen für die vorteile.net App erlauben.</span></li>
+    <li><b>Einloggen oder registrieren</b><span>Mit dem bestehenden Zugang anmelden oder neu registrieren.</span></li>
+  </ol>
+  <p>Sind alle drei Schritte erledigt, nimmst du automatisch teil – eine gesonderte Anmeldung ist nicht nötig.</p>
+  <!-- Vollständige Teilnahmebedingungen (Veranstalter, Zeitraum, Gewinnermittlung, Datenschutz) hier verlinken, z. B.:
+  <p><a class="link" href="https://…" target="_blank" rel="noopener">Vollständige Teilnahmebedingungen</a></p> -->
+  <p class="dlg__fine">Abbildung des Fahrzeugs ähnlich.</p>
+</dialog>
+
+<canvas class="confetti" data-confetti aria-hidden="true"></canvas>
+</body>
+</html>
