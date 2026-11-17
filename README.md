@@ -32,7 +32,7 @@ im Handy scrollt mit:
 
 In jedem Kapitel hüpfen zusätzlich Elemente aus dem Handy und legen sich federnd daneben ab (Push-Mitteilung,
 Deal-Karte, Kategorie-Kacheln, Produktkarte, „In den Warenkorb gelegt“ …) und fliegen beim Weiterscrollen zurück.
-Sie stehen in  unter ; Seite, Höhe, Drehung und Überlappung steuern die -Attribute
+Sie stehen in `index.html` unter `data-pops`; Seite, Höhe, Drehung und Überlappung steuern die `data-*`-Attribute
 (Beschreibung im Kommentar darüber). Mobil werden je Kapitel die ersten zwei gezeigt.
 
 Die Screens sind in HTML nachgebaut (Abschnitt `data-story` in `index.html`), also gestochen scharf und leicht
