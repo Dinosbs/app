@@ -163,6 +163,7 @@
 <section class="story" data-story>
 
   <!-- Bühne: bleibt beim Scrollen stehen, das Handy wird per JS bewegt, gedreht und skaliert -->
+  <div class="story__track">
   <div class="story__stage" aria-hidden="true">
     <span class="story__halo"></span>
     <div class="device" data-device>
@@ -268,26 +269,19 @@
          data-ay = top: Höhe relativ zur Oberkante des Handys, data-dy = Versatz, data-r = Drehung, data-ov = Überlappung mit dem Handy -->
     <div class="pops" data-pops>
       <!-- Hero: auffälliger Verweis aufs Gewinnspiel (klickbar) + Push -->
-      <div class="pop pop--link" data-pop="0" data-early data-side="right" data-ay="top" data-dy="120" data-mdy="250" data-r="0" data-ov="40">
+      <div class="pop pop--link" data-pop="0" data-early data-side="right" data-ay="top" data-dy="120" data-mpos="bottom" data-r="0" data-ov="40">
         <a class="pop__in win-card" href="#gewinnspiel" aria-label="Zum Gewinnspiel: VW Tiguan gewinnen" tabindex="-1">
           <span class="win-card__car"><img src="assets/img/tiguan-xs.webp" alt="" width="300" height="182"></span>
           <span class="win-card__text"><small>Gewinnspiel</small><b>VW Tiguan gewinnen</b></span>
           <span class="win-card__go"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></span>
         </a>
       </div>
-      <div class="pop pop--qr" data-pop="0" data-early data-side="left" data-ay="top" data-dy="95" data-r="0" data-ov="30">
+      <div class="pop pop--qr" data-pop="0" data-desk data-early data-side="left" data-ay="top" data-dy="95" data-r="0" data-ov="30">
         <div class="pop__in pop-qr">
           <span class="qr"><svg viewBox="0 0 29 29" role="img" aria-label="QR-Code zu app.vorteile.net"><use href="#qr"/></svg></span>
           <span class="pop-qr__text"><b>Scannen &amp;<br>App laden</b><small>iPhone &amp; Android</small></span>
         </div>
       </div>
-      <div class="pop pop--mobile" data-pop="0" data-side="left" data-ay="top" data-dy="110" data-mdy="90" data-r="-4" data-ov="36">
-        <div class="pop__in pop-note">
-          <span class="pop-note__icon"><svg viewBox="120 130 535 495"><use href="#mark" x="120" y="130" width="535" height="495"/></svg></span>
-          <span class="pop-note__body"><span class="pop-note__meta"><b>vorteile.net</b><span>jetzt</span></span><span class="pop-note__text">Deals der Woche: Sony bis zu 45% 🔥</span></span>
-        </div>
-      </div>
-
       <!-- Kapitel 1: Deals (Phase a) & Kategorien (Phase b) -->
       <div class="pop" data-pop="1" data-phase="a" data-side="in" data-dy="-110" data-r="-5" data-ov="60">
         <div class="pop__in pop-deal">
@@ -318,7 +312,7 @@
       <div class="pop" data-pop="2" data-phase="a" data-side="out" data-dy="-170" data-r="3" data-ov="44">
         <div class="pop__in pop-toast"><span class="pop-toast__icon"><svg class="i"><use href="#i-cart"/></svg></span>In den Warenkorb gelegt</div>
       </div>
-      <div class="pop" data-pop="2" data-phase="b" data-side="in" data-dy="-110" data-r="-3" data-ov="60">
+      <div class="pop" data-pop="2" data-phase="b" data-desk data-side="in" data-dy="-110" data-r="-3" data-ov="60">
         <div class="pop__in pop-note">
           <span class="pop-note__icon"><svg viewBox="120 130 535 495"><use href="#mark" x="120" y="130" width="535" height="495"/></svg></span>
           <span class="pop-note__body"><span class="pop-note__meta"><b>vorteile.net</b><span>jetzt</span></span><span class="pop-note__text">Deals der Woche 47 sind da 🔥</span></span>
@@ -328,6 +322,7 @@
         <div class="pop__in pop-win"><img data-src="assets/img/tiguan-xs.webp" alt="" width="300" height="182"><span><small>Gewinnspiel</small><b>VW Tiguan gewinnen</b></span></div>
       </div>
     </div>
+  </div>
   </div>
 
   <!-- Kapitel 0: Hero -->

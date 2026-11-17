@@ -79,6 +79,8 @@
     geo.storyBottom = st ? absTop(st) + st.offsetHeight : absTop(heroPanel) + heroPanel.offsetHeight;
     var dl = document.getElementById('download');
     geo.dlTop = absTop(dl); geo.dlBottom = geo.dlTop + (dl ? dl.offsetHeight : 0);
+    var wc = document.querySelector('.win__cta');
+    geo.wcTop = absTop(wc); geo.wcBottom = geo.wcTop + (wc ? wc.offsetHeight : 0);
     geo.secTops = sections.map(function (s) { return s ? absTop(s) : Infinity; });
   }
 
@@ -90,7 +92,7 @@
     nav.classList.toggle('is-solid', y > 40);
     nav.classList.toggle('is-hidden', y > lastY && y > 600 && !document.querySelector('dialog[open]'));
     if (sticky) {
-      var ctaVisible = geo.dlTop - y < vh && geo.dlBottom - y > 0;
+      var ctaVisible = (geo.dlTop - y < vh && geo.dlBottom - y > 0) || (geo.wcTop - y < vh - 40 && geo.wcBottom - y > 60);
       var on = geo.storyBottom - y < vh * 0.6 && !ctaVisible && (vh + y < geo.docH - 40) && !html.classList.contains('is-redirecting');
       if (on !== stickyOn) {
         stickyOn = on;
@@ -175,7 +177,7 @@
   var buyBtn = $('[data-buy]');
   var cartBadge = $('[data-cart]');
   var notes = $$('[data-notes] .note');
-  var anchors = [], kf = [], tops = [], heights = [], scrollMax = {}, vh = 0, vw = 0, small = false;
+  var anchors = [], kf = [], tops = [], heights = [], scrollMax = {}, vh = 0, vw = 0, small = false, navH = 66, sMid = 0.7;
   var halo = $('.story__halo');
   var glare = $('.phone__glare');
   var scrollers = {};
@@ -188,11 +190,12 @@
     if (m[prop] === val) return;
     m[prop] = val; el.style[prop] = val;
   };
-  var pops = $$('[data-pop]'), textBottoms = [];
+  var pops = $$('[data-pop]'), textBottoms = [], heroCopyBottom = 0;
   var currentScreen = 'splash', splashDone = false, counted = false;
 
   function measure() {
-    vh = window.innerHeight; vw = window.innerWidth; small = vw < 820;
+    vh = window.innerHeight; vw = window.innerWidth;
+    small = vw < 820 && (vh >= 500 || vh >= vw);   // Hochformat; Handys quer bekommen das Desktop-Layout
     var sy = window.scrollY;
     tops = chapters.map(function (c) { return c.getBoundingClientRect().top + sy; });
     heights = chapters.map(function (c) { return c.offsetHeight; });
@@ -208,6 +211,7 @@
     var copyBottom = heroCopy ? offsetWithin(heroCopy, null).y + heroCopy.offsetHeight : vh * 0.45;
     var phoneTop = copyBottom + (small ? 26 : 34);
     var heroY = phoneTop + (H * heroScale) / 2 - vh / 2;
+    heroCopyBottom = copyBottom;
     kf = [
       { x: 0, y: heroY, s: heroScale, ry: 0 },
       { x: X, y: restY, s: rest, ry: -ry },
@@ -217,7 +221,9 @@
     ];
     if (small) {
       // Mobil: Text klebt oben, das Handy nutzt den Platz bis zum unteren Rand so gut wie möglich
-      var navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 66;
+      navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 66;
+      // während des Wechsels (Text ausgeblendet) wird das Handy mittig größer gezeigt
+      sMid = Math.min(0.78, (vh - navH - 48) / H, (vw * 0.7) / W);
       for (var k = 1; k < kf.length; k++) {
         var textBottom = navH + 4 + (texts[k] ? texts[k].offsetHeight : 200) - 14;
         textBottoms[k] = textBottom;
@@ -278,7 +284,11 @@
       var spin = Math.sin(Math.PI * e);
       ry += dir * spin * (small ? 24 : 34);
       rz = -dir * spin * 4;
-      yy -= spin * (small ? 10 : 24);
+      if (small) {
+        // mobil: beim Drehen in die freie Bildschirmmitte steigen und etwas größer werden
+        yy = lerp(yy, navH / 2, spin);
+        s = lerp(s, Math.max(s, sMid), spin);
+      } else yy -= spin * 24;
     }
     put(device, 'transform', 'translate3d(' + x.toFixed(1) + 'px,' + yy.toFixed(1) + 'px,0) scale(' + s.toFixed(4) + ') rotateY(' + ry.toFixed(2) + 'deg) rotateZ(' + rz.toFixed(2) + 'deg)');
     // während der Bewegung als eigene GPU-Ebene, in Ruhe wieder gestochen scharf
@@ -358,10 +368,13 @@
     pops.forEach(function (el) {
       var c = +el.dataset.pop, k = kf[c];
       if (!k) return;
-      if (getComputedStyle(el).display === 'none') return;   // z. B. QR mobil / Push-Mitteilung am Desktop
+      // nur auf großen Bildschirmen (QR-Code, doppelte Mitteilung) – oder per CSS ausgeblendet (QR auf Handys)
+      var deskOnly = small && el.hasAttribute('data-desk');
+      el.classList.toggle('is-off', deskOnly);
+      if (deskOnly || getComputedStyle(el).display === 'none') return;
       var key = c + (el.dataset.phase || '');
       var n = perChapter[key] = (perChapter[key] || 0) + 1;
-      var ps = small ? 0.62 : Math.min(1, Math.max(0.85, k.s));
+      var ps = small ? clamp(vw / 560, 0.62, 0.74) : Math.min(1, Math.max(0.85, k.s));
       var w = el.offsetWidth, h = el.offsetHeight;
       var hw = 150 * k.s, hh = 310 * k.s;
       var side = el.dataset.side, sign;
@@ -378,9 +391,13 @@
       var ty = (el.dataset.ay === 'top' ? k.y - hh : k.y) + dy * k.s * (small ? 1.15 : 1);
       var maxX = vw / 2 - (w * ps) / 2 - 10;
       tx = clamp(tx, -maxX, maxX);
-      var minY = -vh / 2 + (h * ps) / 2 + 10, maxY = vh / 2 - (h * ps) / 2 - 10;
+      var minY = -vh / 2 + (h * ps) / 2 + (vh < 500 ? 58 : 10), maxY = vh / 2 - (h * ps) / 2 - 10;   // flach: unter der Kopfzeile bleiben
       if (small && c > 0 && textBottoms[c]) minY = Math.max(minY, textBottoms[c] - vh / 2 + (h * ps) / 2 + 4);
       ty = clamp(ty, minY, maxY);
+      if (small && el.dataset.mpos === 'bottom') {
+        ps = Math.min(1, (vw - 32) / w);
+        tx = 0; ty = vh / 2 - (h * ps) / 2 - 22;
+      }
       // mobil reichen zwei Elemente je Kapitel
       var off = small && n > 2;
       if (!small && c > 0 && texts[c]) {
@@ -390,6 +407,8 @@
         if (k.x < 0 && sign > 0) tx = Math.min(tx, tr.left - vw / 2 - 18 - (w * ps) / 2);
         if (Math.abs(tx - k.x) < hw * 0.55) off = true;
       }
+      // Hero: nie über Überschrift, Text oder Store-Buttons legen (z. B. Handy quer)
+      if (c === 0 && vh / 2 + ty - (h * ps) / 2 < heroCopyBottom + 6) off = true;
       el.classList.toggle('is-off', off);
       el.style.setProperty('--tx', tx.toFixed(1) + 'px');
       el.style.setProperty('--ty', ty.toFixed(1) + 'px');

@@ -18,8 +18,9 @@ assets/img/app/       Kategorie-Kacheln aus der App (für den Kategorien-Screen 
 
 ## Aufbau der Seite (kurz und knackig)
 
-1. **Hero** – Headline, Store-Buttons, großes Smartphone mit Intro. Rechts am Handy klebt ein rotierender
-   Gewinnspiel-Sticker („Jetzt mitmachen“), der direkt zum Gewinnspiel springt.
+1. **Hero** – Headline, Store-Buttons, großes Smartphone mit Intro. Neben dem Handy eine QR-Code-Karte
+   (nur Desktop) und eine Gewinnspiel-Karte, die direkt zum Gewinnspiel springt. Auf dem Handy liegt die
+   Gewinnspiel-Karte unten mittig; ist kein Platz (Handy quer), entfällt sie.
 2. **App in 2 Kapiteln** – das Handy wandert mit Drehung zur Seite, die Screens scrollen mit:
 
    | Kapitel | Seite des Handys | Screens im Handy |
@@ -30,8 +31,14 @@ assets/img/app/       Kategorie-Kacheln aus der App (für den Kategorien-Screen 
    Bei jedem Screen-Wechsel hüpfen passende Elemente aus dem Handy (Deal-Karte, Favoriten, Kategorie-Kachel,
    „15 Welten“, Produktkarte, „In den Warenkorb gelegt“, Push-Mitteilung, Tiguan-Karte) und fliegen beim
    Weiterscrollen zurück. Sie stehen in `index.html` unter `data-pops` (`data-pop` = Kapitel, `data-phase` = erster/zweiter Screen).
+   `data-desk` = Element nur auf großen Bildschirmen (z. B. QR-Code).
 3. **Gewinnspiel** – VW Tiguan, drei Schritte, Teilnahmebedingungen.
-4. **Attraktive Angebote** – eine Logo-Reihe, sechs Deals, Store-Buttons. Danach Fußzeile.
+4. **Attraktive Angebote** – eine Logo-Reihe, sechs Deals, Abschluss-Karte mit Store-Buttons und QR-Code. Danach Fußzeile.
+
+**Mobil (Hochformat):** Kapiteltext oben, Handy darunter. Beim Kapitelwechsel steigt das Handy in die freie
+Bildschirmmitte und wird größer, danach setzt es sich unter den nächsten Text. Am Ende der Story scrollt es mit
+weg. Die Leiste „vorteile.net App – Laden“ blendet sich aus, solange andere Store-Buttons zu sehen sind.
+**Handy quer:** Text und Handy nebeneinander wie am Desktop.
 
 Die Screens sind in HTML nachgebaut (Abschnitt `data-story` in `index.html`). Die Choreografie steht in `main.js`
 unter „App-Story“ (`screenFor`, `PHASE_SPLIT`, Keyframes in `measure()`). Mit „Bewegung reduzieren“ im
