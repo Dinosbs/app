@@ -14,7 +14,6 @@ assets/js/main.js     Animationen und Interaktionen
 assets/fonts/         Barlow Semi Condensed und Caveat (Handschrift der App), beide SIL OFL
 assets/img/           Tiguan, Deals, Marken-Logos, Produkte, Store-Badges, Favicon, Teilen-Bild
 assets/img/app/       Kategorie-Kacheln aus der App (für den Kategorien-Screen im Handy)
-CNAME                 app.vorteile.net (für GitHub Pages)
 ```
 
 ## Scroll-Story mit der App
@@ -90,8 +89,8 @@ Eine neue Deal-Kachel = eine `<article class="deal">` kopieren und Bild, Logo, T
 ## Veröffentlichen
 
 **GitHub Pages:** Settings → Pages → „Deploy from a branch“ → Branch wählen, Ordner `/ (root)`.
-Beim DNS-Anbieter für `app.vorteile.net` einen CNAME auf `dinosbs.github.io` setzen, danach in den Pages-Einstellungen
-„Enforce HTTPS“ aktivieren. Die Datei `CNAME` liegt schon im Repo.
+Unter „Custom domain“ `app.vorteile.net` eintragen und beim DNS-Anbieter einen CNAME auf `dinosbs.github.io` setzen,
+danach „Enforce HTTPS“ aktivieren.
 
 Jedes andere statische Hosting geht genauso: einfach alle Dateien hochladen.
 
