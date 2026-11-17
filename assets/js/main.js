@@ -373,7 +373,8 @@
       }
       var ov = (+el.dataset.ov || 0) * (small ? 1.3 : 0.75);
       var tx = k.x + sign * (hw + (w * ps) / 2 - ov);
-      var ty = (el.dataset.ay === 'top' ? k.y - hh : k.y) + (+el.dataset.dy || 0) * k.s * (small ? 1.15 : 1);
+      var dy = small && el.dataset.mdy ? +el.dataset.mdy : (+el.dataset.dy || 0);   // mobil eigene Höhe möglich
+      var ty = (el.dataset.ay === 'top' ? k.y - hh : k.y) + dy * k.s * (small ? 1.15 : 1);
       var maxX = vw / 2 - (w * ps) / 2 - 10;
       tx = clamp(tx, -maxX, maxX);
       var minY = -vh / 2 + (h * ps) / 2 + 10, maxY = vh / 2 - (h * ps) / 2 - 10;

@@ -458,25 +458,23 @@ main { overflow-x: clip; }
 .tile__link .i { transition: transform .5s var(--ease); }
 .tile__link:hover .i { transform: translateX(5px); }
 
-/* Gewinnspiel-Sticker */
+/* Gewinnspiel-Karte im Hero (schlicht, klickbar) */
 .pop--link.is-out { pointer-events: auto; }
-.win-sticker {
-  position: relative; display: grid; place-items: center; width: 172px; height: 172px; border-radius: 50%; color: #fff; text-decoration: none;
-  background: radial-gradient(circle at 32% 26%, #114a66, #06293d 72%);
-  box-shadow: 0 26px 50px -18px rgba(6, 41, 61, .75), 0 0 0 6px rgba(255, 255, 255, .55);
-  transition: transform .6s var(--spring), box-shadow .4s;
+.win-card {
+  display: flex; align-items: center; gap: 14px; padding: 10px 12px 10px 10px; border-radius: 20px;
+  background: #fff; color: var(--ink); text-decoration: none;
+  box-shadow: 0 24px 50px -24px rgba(6, 41, 61, .5), 0 0 0 1px rgba(6, 41, 61, .04);
+  transition: transform .5s var(--ease), box-shadow .5s var(--ease);
 }
-.win-sticker:hover { transform: scale(1.07) rotate(5deg); box-shadow: 0 30px 60px -18px rgba(6, 41, 61, .8), 0 0 0 8px #fff; }
-.win-sticker::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(255,255,255,.8); animation: sticker-pulse 2.4s var(--ease) infinite; pointer-events: none; }
-@keyframes sticker-pulse { from { transform: scale(1); opacity: .9; } to { transform: scale(1.22); opacity: 0; } }
-/* Drehung auf einem HTML-Container (läuft auf der GPU, kein Layout pro Bild) */
-.win-sticker__ring { position: absolute; inset: 0; animation: sticker-spin 18s linear infinite; will-change: transform; }
-.win-sticker__ring svg { width: 100%; height: 100%; }
-.win-sticker__ring text { font: 700 13px var(--font); letter-spacing: .12em; fill: var(--teal-300); }
-.pop:not(.is-out) .win-sticker__ring, .pop:not(.is-out) .win-sticker::after { animation-play-state: paused; }
-@keyframes sticker-spin { to { transform: rotate(360deg); } }
-.win-sticker img { position: relative; z-index: 1; width: 126px; margin: -34px -12px 0 0; filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .45)); }
-.win-sticker__cta { position: absolute; left: 0; right: 0; bottom: 32px; font-weight: 800; font-size: 13.5px; line-height: 1; text-align: center; text-transform: uppercase; letter-spacing: .05em; }
+.win-card:hover { transform: translateY(-3px); box-shadow: 0 30px 60px -24px rgba(6, 41, 61, .55), 0 0 0 1px rgba(6, 41, 61, .06); }
+.win-card__car { display: grid; place-items: center; width: 84px; height: 58px; border-radius: 14px; background: var(--grad4); overflow: visible; }
+.win-card__car img { width: 78px; filter: drop-shadow(0 6px 8px rgba(6, 41, 61, .3)); }
+.win-card__text { display: flex; flex-direction: column; line-height: 1.1; white-space: nowrap; }
+.win-card__text small { font-size: .78rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--app-blue); }
+.win-card__text b { font-size: 1.2rem; font-weight: 800; }
+.win-card__go { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--ink); color: #fff; transition: transform .5s var(--ease); }
+.win-card__go .i { width: 17px; height: 17px; }
+.win-card:hover .win-card__go { transform: translateX(3px); }
 .hero__win-link { color: var(--blue-700); font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .18em; text-decoration-color: rgba(19, 95, 134, .35); transition: text-decoration-color .3s; }
 .hero__win-link:hover { text-decoration-color: currentColor; }
 
