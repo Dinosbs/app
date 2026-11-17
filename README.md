@@ -2,19 +2,38 @@
 
 Eine Adresse für alles: **app.vorteile.net**. Wer die Seite auf dem Smartphone öffnet, landet direkt im
 richtigen Store. Alle anderen (Desktop, oder wenn der Store nicht aufgeht) sehen die Landingpage mit
-Store-Buttons, QR-Code, Gewinnspiel (VW Tiguan), Partner-Deals, Marken und Vorteils-Shop.
+Store-Buttons, einer Scroll-Story mit der App, Gewinnspiel (VW Tiguan), Partner-Deals, Marken und QR-Code.
 
 Reines HTML/CSS/JS ohne Build-Schritt und ohne externe Abhängigkeiten. Läuft auf jedem statischen Hosting.
 
 ```
 index.html            die ganze Seite, inkl. App-Weiche (inline im <head>)
 404.html              leitet jede unbekannte Adresse (z. B. /flyer) auf die Startseite um, Parameter bleiben erhalten
-assets/css/style.css  Design (CI-Farben als Variablen in :root)
+assets/css/style.css  Design (CI-Farben und 4-Ecken-Verlauf aus dem App-Icon als Variablen in :root)
 assets/js/main.js     Animationen und Interaktionen
-assets/fonts/         Barlow Semi Condensed (SIL OFL, siehe LICENSE.txt)
-assets/img/           Tiguan, Deals, Marken-Logos, Produkte, Gutscheine, Store-Badges, Favicon, Teilen-Bild
+assets/fonts/         Barlow Semi Condensed und Caveat (Handschrift der App), beide SIL OFL
+assets/img/           Tiguan, Deals, Marken-Logos, Produkte, Store-Badges, Favicon, Teilen-Bild
+assets/img/app/       Kategorie-Kacheln aus der App (für den Kategorien-Screen im Handy)
 CNAME                 app.vorteile.net (für GitHub Pages)
 ```
+
+## Scroll-Story mit der App
+
+Der Hero zeigt das Smartphone groß in der Mitte (Intro: Handy fährt ein, Logo zeichnet sich, dann der Startscreen).
+Beim Scrollen wandert es mit einer Drehung abwechselnd nach rechts und links, wechselt den Screen und der Inhalt
+im Handy scrollt mit:
+
+| Kapitel | Seite des Handys | Screen im Handy |
+| --- | --- | --- |
+| Hero | Mitte, groß | Start („Hallo, Alex!“) |
+| Deals | rechts | Start: Partner-Highlights scrollen, Herzen füllen sich |
+| Kategorien | links | Kategorien-Kacheln, eine nach der anderen leuchtet auf |
+| Vorteils-Shop | rechts | Produktliste, dann Produktdetail, „In den Warenkorb“, Warenkorb-Zähler springt auf 2 |
+| Push | links | Sperrbildschirm, Mitteilungen kommen nacheinander rein |
+
+Die Screens sind in HTML nachgebaut (Abschnitt `data-story` in `index.html`), also gestochen scharf und leicht
+anzupassen. Die Choreografie steht in `main.js` unter „App-Story“ (`CHAPTER_SCREEN` und Keyframes in `measure()`).
+Mit „Bewegung reduzieren“ im Betriebssystem fallen Drehungen und Mitscrollen weg.
 
 ## App-Weiche
 
@@ -64,7 +83,7 @@ Wird er in `applePt` eingetragen, hängt die Seite `pt`, `ct` (Kampagnenname) un
 ## Inhalte
 
 Deals, Logos und Produkte stammen aus dem Portal (Stand November 2026) und stehen als fertiges HTML in `index.html`.
-Bilder liegen als WebP in `assets/img/deals`, `assets/img/logos`, `assets/img/products` und `assets/img/gutscheine`.
+Bilder liegen als WebP in `assets/img/deals`, `assets/img/logos` und `assets/img/products`.
 Eine neue Deal-Kachel = eine `<article class="deal">` kopieren und Bild, Logo, Text und `data-kat` anpassen
 (`technik`, `home`, `mobil`, `sport`, `mode`, `beauty`).
 

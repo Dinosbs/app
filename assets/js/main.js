@@ -48,7 +48,6 @@
     if (introDone || html.classList.contains('is-redirecting')) return;
     introDone = true;
     requestAnimationFrame(function () { requestAnimationFrame(function () { html.classList.add('is-ready'); }); });
-    countUp($$('.hero [data-count]'));
   }
   var fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
   Promise.race([fontsReady, new Promise(function (r) { setTimeout(r, 900); })]).then(intro);
@@ -73,7 +72,9 @@
       var dl = document.getElementById('download');
       var dlr = dl ? dl.getBoundingClientRect() : null;
       var ctaVisible = dlr && dlr.top < window.innerHeight && dlr.bottom > 0;
-      var on = heroBottom < 0 && !ctaVisible && (window.innerHeight + y < document.documentElement.scrollHeight - 40) && !html.classList.contains('is-redirecting');
+      var storyEl = document.querySelector('[data-story]');
+      var storyPassed = storyEl ? storyEl.getBoundingClientRect().bottom < window.innerHeight * 0.6 : heroBottom < 0;
+      var on = storyPassed && !ctaVisible && (window.innerHeight + y < document.documentElement.scrollHeight - 40) && !html.classList.contains('is-redirecting');
       sticky.classList.toggle('is-on', on);
       sticky.setAttribute('aria-hidden', on ? 'false' : 'true');
       var sb = sticky.querySelector('a'); if (sb) sb.tabIndex = on ? 0 : -1;
@@ -122,77 +123,188 @@
     var countIO = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) { if (en.isIntersecting) { countUp([en.target]); countIO.unobserve(en.target); } });
     }, { threshold: 0.6 });
-    $$('[data-count]').forEach(function (el) { if (!el.closest('.hero')) countIO.observe(el); });
+    $$('[data-count]').forEach(function (el) { if (!el.closest('[data-chapter-text]')) countIO.observe(el); });
   }
 
-  /* ---------------------------------------------------------------- Hero: Parallax mit der Maus */
-  var stage = $('[data-parallax]');
-  if (stage && finePointer && !reduce) {
-    var layers = $$('[data-depth]', stage);
-    var tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
-    var hero = $('.hero__panel');
-    hero.addEventListener('pointermove', function (e) {
-      var r = hero.getBoundingClientRect();
-      tx = (e.clientX - r.left) / r.width - 0.5;
-      ty = (e.clientY - r.top) / r.height - 0.5;
-      if (!raf) raf = requestAnimationFrame(loop);
+  /* ---------------------------------------------------------------- App-Story: das Smartphone wandert mit */
+  // Jedes Kapitel hat einen Ankerpunkt (Kapitelmitte = Bildschirmmitte). Zwischen zwei Ankern fährt das Handy
+  // mit einer Drehung auf die andere Seite und wechselt dabei den Screen. Im Kapitel scrollt der Screen mit.
+  var story = $('[data-story]');
+  var device = $('[data-device]');
+  var stage = $('.story__stage');
+  var chapters = $$('[data-chapter]', story);
+  var texts = chapters.map(function (c) { return $('[data-chapter-text]', c); });
+  var heroCopy = $('[data-hero-copy]');
+  var statusbar = $('[data-statusbar]');
+  var tabbar = $('[data-tabbar]');
+  var tabs = $$('[data-tab]', tabbar);
+  var screens = {};
+  $$('[data-screen]').forEach(function (s) { screens[s.dataset.screen] = s; });
+  var CHAPTER_SCREEN = ['start', 'start', 'cats', 'shop', 'lock'];
+  var SCREEN_TAB = { start: 'start', cats: 'cats', shop: 'cats' };
+  var hearts = $$('[data-hearts] .app-heart');
+  var catTiles = $$('[data-cats] img');
+  var detail = $('[data-detail]');
+  var buyBtn = $('[data-buy]');
+  var cartBadge = $('[data-cart]');
+  var notes = $$('[data-notes] .note');
+  var anchors = [], kf = [], tops = [], heights = [], scrollMax = {}, vh = 0, vw = 0, small = false;
+  var currentScreen = 'splash', splashDone = false, counted = false;
+
+  function measure() {
+    vh = window.innerHeight; vw = window.innerWidth; small = vw < 820;
+    var sy = window.scrollY;
+    tops = chapters.map(function (c) { return c.getBoundingClientRect().top + sy; });
+    heights = chapters.map(function (c) { return c.offsetHeight; });
+    anchors = chapters.map(function (c, i) { return i === 0 ? 0 : tops[i] + (heights[i] - vh) / 2; });
+
+    var H = 620, W = 300;
+    var rest = small ? Math.min(0.66, (vh * 0.5) / H, (vw * 0.62) / W) : Math.min(1.02, (vh - 150) / H);
+    var restY = small ? vh / 2 - (H * rest) / 2 - 18 : 0;
+    var X = small ? 0 : Math.min(vw * 0.23, 330);
+    var ry = small ? 0 : 13;
+    // Hero: groß, mittig, oben angeschnitten unter dem Text
+    var heroScale = small ? Math.min(1, (vw * 0.8) / W) : Math.min(1.32, (vh * 0.95) / H);
+    var copyBottom = heroCopy ? heroCopy.getBoundingClientRect().bottom + sy : vh * 0.45;
+    var phoneTop = copyBottom + (small ? 26 : 34);
+    var heroY = phoneTop + (H * heroScale) / 2 - vh / 2;
+    kf = [
+      { x: 0, y: heroY, s: heroScale, ry: 0 },
+      { x: X, y: restY, s: rest, ry: -ry },
+      { x: -X, y: restY, s: rest, ry: ry },
+      { x: X, y: restY, s: rest, ry: -ry },
+      { x: -X, y: restY, s: rest, ry: ry }
+    ];
+    Object.keys(screens).forEach(function (k) {
+      var sc = $('[data-scroll]', screens[k]);
+      scrollMax[k] = sc ? Math.max(0, sc.offsetHeight - screens[k].clientHeight) : 0;
     });
-    hero.addEventListener('pointerleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(loop); });
-    var loop = function () {
-      cx += (tx - cx) * 0.08; cy += (ty - cy) * 0.08;
-      layers.forEach(function (l) {
-        var d = +l.dataset.depth;
-        var rot = l.classList.contains('phone') ? ' rotateY(' + (cx * 10).toFixed(2) + 'deg) rotateX(' + (-cy * 8).toFixed(2) + 'deg)' : '';
-        l.style.translate = (cx * d * 26).toFixed(2) + 'px ' + (cy * d * 22).toFixed(2) + 'px';
-        if (rot) l.style.transform = html.classList.contains('is-ready') ? rot : '';
-      });
-      raf = (Math.abs(tx - cx) > 0.001 || Math.abs(ty - cy) > 0.001) ? requestAnimationFrame(loop) : null;
-    };
   }
 
-  /* ---------------------------------------------------------------- Push-Nachricht im Hero wechselt */
-  var pushText = $('[data-push-text]');
-  if (pushText && !reduce) {
-    var msgs = ['Deals der Woche: Sony bis zu 45%', 'Neu: Samsung bis zu 30% 📱', 'Gewinnspiel: Gewinne einen VW Tiguan 🚙', 'Advents-Special ist gestartet 🎁'];
-    var mi = 0;
-    setInterval(function () {
-      pushText.classList.add('is-out');
-      setTimeout(function () { mi = (mi + 1) % msgs.length; pushText.textContent = msgs[mi]; pushText.classList.remove('is-out'); }, 380);
-    }, 3600);
+  var smooth = function (t) { return t * t * (3 - 2 * t); };
+  var inOut = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+  var lerp = function (a, b, t) { return a + (b - a) * t; };
+
+  function setScreen(name) {
+    if (name === currentScreen) return;
+    if (screens[currentScreen]) screens[currentScreen].classList.remove('is-active');
+    screens[name].classList.add('is-active');
+    currentScreen = name;
+    statusbar.classList.toggle('is-light', name === 'lock' || name === 'splash');
+    tabbar.classList.toggle('is-hidden', name === 'lock' || name === 'splash');
+    tabs.forEach(function (t) { t.classList.toggle('on', t.dataset.tab === SCREEN_TAB[name]); });
   }
 
-  /* ---------------------------------------------------------------- Bento: Push-Stapel */
-  var stack = $('[data-push-stack]');
-  if (stack) {
-    var cards = $$('.push--stack', stack), order = cards.map(function (_, i) { return i; });
-    var layout = function () {
-      order.forEach(function (ci, pos) {
-        var c = cards[ci];
-        c.style.setProperty('--y', (pos * 22 - 30) + 'px');
-        c.style.setProperty('--s', (1 - pos * 0.06).toFixed(3));
-        c.style.setProperty('--o', pos > 2 ? 0 : (1 - pos * 0.22).toFixed(2));
-        c.style.setProperty('--z', 10 - pos);
-        c.style.setProperty('--c', pos === 0 ? 1 : 0);
-      });
-    };
-    layout();
-    if (!reduce) setInterval(function () {
-      // oberste Karte fliegt raus, die nächste rückt nach, die alte kommt hinten an
-      var top = cards[order[0]];
-      top.style.setProperty('--y', '-110px'); top.style.setProperty('--o', 0);
-      setTimeout(function () { order.push(order.shift()); layout(); }, 420);
-    }, 3000);
+  // Fortschritt 0..1 innerhalb eines Kapitels (0 = Kapitelanfang in Bildschirmmitte, 1 = Kapitelende in Bildschirmmitte)
+  function chapterProgress(i, y) {
+    return clamp((y - (tops[i] - vh * 0.5)) / heights[i], 0, 1);
   }
 
-  /* ---------------------------------------------------------------- Bento: Welten leuchten auf */
-  var welten = $$('[data-welten] li');
-  if (welten.length && !reduce) {
-    var lit = [];
-    setInterval(function () {
-      lit.forEach(function (l) { l.classList.remove('is-lit'); });
-      lit = [];
-      for (var k = 0; k < 3; k++) { var el = welten[Math.floor(Math.random() * welten.length)]; el.classList.add('is-lit'); lit.push(el); }
-    }, 1600);
+  function onScrollStory() {
+    if (!device || !anchors.length) return;
+    var y = window.scrollY;
+    var n = anchors.length;
+
+    // Segment zwischen zwei Ankern
+    var i = 0;
+    while (i < n - 2 && y > anchors[i + 1]) i++;
+    var u = clamp((y - anchors[i]) / (anchors[i + 1] - anchors[i]), 0, 1);
+    var hold = 0.24;
+    var e = reduce ? (u > 0.5 ? 1 : 0) : inOut(clamp((u - hold) / (1 - 2 * hold), 0, 1));
+    var a = kf[i], b = kf[i + 1];
+    var x = lerp(a.x, b.x, e), yy = lerp(a.y, b.y, e), s = lerp(a.s, b.s, e), ry = lerp(a.ry, b.ry, e), rz = 0;
+    if (!reduce) {
+      var dir = (b.x - a.x) === 0 ? 1 : Math.sign(b.x - a.x);
+      var spin = Math.sin(Math.PI * e);
+      ry += dir * spin * (small ? 24 : 34);
+      rz = -dir * spin * 4;
+      yy -= spin * (small ? 10 : 24);
+    }
+    device.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + yy.toFixed(1) + 'px,0) scale(' + s.toFixed(4) + ') rotateY(' + ry.toFixed(2) + 'deg) rotateZ(' + rz.toFixed(2) + 'deg)';
+    device.style.setProperty('--glare', (50 + ry * 2.2).toFixed(1) + '%');
+    stage.style.setProperty('--hx', x.toFixed(1) + 'px');
+    stage.style.setProperty('--hy', yy.toFixed(1) + 'px');
+    stage.style.setProperty('--ho', clamp((y - vh * 0.25) / (vh * 0.4), 0, 1).toFixed(3));
+
+    // Screen wechseln, sobald die Drehung den halben Weg hat
+    var idx = e > 0.5 ? i + 1 : i;
+    if (y > anchors[n - 1]) idx = n - 1;
+    if (splashDone || idx > 0) { splashDone = true; setScreen(CHAPTER_SCREEN[idx]); }
+
+    // Hero-Text blendet aus
+    if (heroCopy) {
+      var ho = clamp(1 - y / (vh * 0.42), 0, 1);
+      heroCopy.style.opacity = ho.toFixed(3);
+      heroCopy.style.transform = 'translate3d(0,' + (-y * 0.25).toFixed(1) + 'px,0)';
+    }
+
+    // Kapiteltexte ein-/ausblenden
+    for (var c = 1; c < n; c++) {
+      var q = chapterProgress(c, y);
+      var o = smooth(clamp((q - 0.1) / 0.16, 0, 1)) * (1 - smooth(clamp((q - 0.8) / 0.14, 0, 1)));
+      var t = texts[c];
+      t.style.opacity = o.toFixed(3);
+      t.style.transform = reduce ? '' : 'translate3d(0,' + ((q < 0.5 ? 1 : -1) * (1 - o) * 40).toFixed(1) + 'px,0)';
+      if (c === 1 && o > 0.6 && !counted) { counted = true; countUp($$('[data-count]', t)); }
+    }
+
+    // Inhalte im Handy folgen dem Scrollen
+    var q1 = clamp((chapterProgress(1, y) - 0.12) / 0.76, 0, 1);
+    scrollScreen('start', q1);
+    hearts.forEach(function (h, k) { if (k % 3 !== 1) h.classList.toggle('on', q1 > (k + 0.5) / (hearts.length + 1)); });
+
+    var q2 = clamp((chapterProgress(2, y) - 0.12) / 0.76, 0, 1);
+    scrollScreen('cats', q2);
+    var hot = q2 > 0.04 && q2 < 0.98 ? Math.min(catTiles.length - 1, Math.floor(q2 * catTiles.length)) : -1;
+    catTiles.forEach(function (img, k) { img.classList.toggle('is-hot', k === hot); });
+
+    var q3 = clamp((chapterProgress(3, y) - 0.1) / 0.8, 0, 1);
+    scrollScreen('shop', clamp(q3 / 0.5, 0, 1));
+    detail.classList.toggle('is-open', q3 > 0.56);
+    var bought = q3 > 0.8;
+    buyBtn.classList.toggle('is-pressed', q3 > 0.76 && q3 < 0.84);
+    var count = bought ? '2' : '1';
+    if (cartBadge.textContent !== count) {
+      cartBadge.textContent = count;
+      cartBadge.classList.remove('bump'); void cartBadge.offsetWidth; cartBadge.classList.add('bump');
+    }
+
+    var q4 = clamp((chapterProgress(4, y) - 0.1) / 0.7, 0, 1);
+    notes.forEach(function (nt, k) {
+      // die älteste Mitteilung kommt zuerst, neue schieben sich oben drüber
+      var order = notes.length - 1 - k;
+      nt.classList.toggle('is-in', q4 > 0.04 + order * (0.9 / notes.length));
+    });
+  }
+
+  function scrollScreen(name, q) {
+    var sc = $('[data-scroll]', screens[name]);
+    if (sc) sc.style.setProperty('--sy', (-scrollMax[name] * (reduce ? 0 : q)).toFixed(1) + 'px');
+  }
+
+  // Startbildschirm: kurzes Logo-Intro, dann Start
+  function endSplash() {
+    if (splashDone) return;
+    splashDone = true;
+    onScrollStory();
+  }
+  if (story) {
+    statusbar.classList.add('is-light');
+    tabbar.classList.add('is-hidden');
+    measure();
+    window.addEventListener('resize', function () { measure(); onScroll(); });
+    window.addEventListener('load', function () {
+      measure(); onScroll();
+      // Bilder im Handy vorladen, damit beim Scrollen nichts nachlädt
+      $$('.phone img[loading="lazy"]').forEach(function (img) { img.loading = 'eager'; });
+    });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { measure(); onScroll(); });
+    var splashWait = function () { setTimeout(endSplash, reduce ? 0 : 2300); };
+    if (html.classList.contains('is-ready')) splashWait();
+    else {
+      var mo = new MutationObserver(function () { if (html.classList.contains('is-ready')) { mo.disconnect(); splashWait(); } });
+      mo.observe(html, { attributes: true, attributeFilter: ['class'] });
+    }
   }
 
   /* ---------------------------------------------------------------- Zeiger-Lichtschein auf Karten */
@@ -378,56 +490,6 @@
     moreBtn.addEventListener('click', function () { state.limit += 9; renderDeals(true); });
   }
 
-  /* ---------------------------------------------------------------- Produkt-Karussell */
-  var carousel = $('[data-carousel]');
-  if (carousel) {
-    var prev = $('[data-carousel-prev]'), next = $('[data-carousel-next]'), cbar = $('[data-carousel-bar]');
-    var update = function () {
-      var max = carousel.scrollWidth - carousel.clientWidth;
-      var w = clamp(carousel.clientWidth / carousel.scrollWidth, 0.08, 1);
-      cbar.style.setProperty('--bw', (w * 100).toFixed(2) + '%');
-      cbar.style.setProperty('--bx', (max > 0 ? carousel.scrollLeft / max * (1 - w) * 100 : 0).toFixed(2) + '%');
-      prev.disabled = carousel.scrollLeft < 8;
-      next.disabled = carousel.scrollLeft > max - 8;
-    };
-    var stepBy = function (dir) {
-      var card = $('.product', carousel);
-      var w = card ? card.getBoundingClientRect().width + 20 : 280;
-      carousel.scrollBy({ left: dir * w * Math.max(1, Math.floor(carousel.clientWidth / w) - 1), behavior: reduce ? 'auto' : 'smooth' });
-    };
-    prev.addEventListener('click', function () { stepBy(-1); });
-    next.addEventListener('click', function () { stepBy(1); });
-    carousel.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    update();
-
-    // Ziehen mit der Maus (Touch scrollt nativ)
-    var down = false, startX = 0, startL = 0, moved = 0, vel = 0, lastX = 0, lastT = 0;
-    carousel.addEventListener('pointerdown', function (e) {
-      if (e.pointerType !== 'mouse' || e.button !== 0) return;
-      down = true; moved = 0; startX = lastX = e.clientX; startL = carousel.scrollLeft; lastT = performance.now(); vel = 0;
-    });
-    window.addEventListener('pointermove', function (e) {
-      if (!down) return;
-      var dx = e.clientX - startX;
-      if (Math.abs(dx) > 4 && !carousel.classList.contains('is-dragging')) carousel.classList.add('is-dragging');
-      moved = Math.abs(dx);
-      carousel.scrollLeft = startL - dx;
-      var now = performance.now(); vel = (e.clientX - lastX) / Math.max(1, now - lastT); lastX = e.clientX; lastT = now;
-    });
-    window.addEventListener('pointerup', function () {
-      if (!down) return;
-      down = false;
-      if (moved > 4) {
-        var v = vel * 16;
-        (function glide() {
-          if (Math.abs(v) < 0.4) { carousel.classList.remove('is-dragging'); return; }
-          carousel.scrollLeft -= v; v *= 0.94; requestAnimationFrame(glide);
-        })();
-      } else carousel.classList.remove('is-dragging');
-    });
-  }
-
   /* ---------------------------------------------------------------- Dialoge */
   var dlgApp = $('#dlg-app');
   var dlgCtx = $('[data-dlg-ctx]');
@@ -494,7 +556,9 @@
       if (id === '#top') { e.preventDefault(); window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }); return; }
       if (!t) return;
       e.preventDefault();
-      var y = t.getBoundingClientRect().top + window.scrollY - (id === '#gewinnspiel' ? 0 : 70);
+      var top = t.getBoundingClientRect().top + window.scrollY;
+      // Kapitel der App-Story: zur Kapitelmitte, dort steht das Handy still
+      var y = t.hasAttribute('data-chapter') ? top + (t.offsetHeight - window.innerHeight) / 2 : top - (id === '#gewinnspiel' ? 0 : 70);
       window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
       history.replaceState(null, '', id);
     });
@@ -505,7 +569,7 @@
   function onScroll() {
     if (ticking) return;
     ticking = true;
-    requestAnimationFrame(function () { ticking = false; onScrollUi(); onScrollWin(); });
+    requestAnimationFrame(function () { ticking = false; onScrollUi(); onScrollStory(); onScrollWin(); });
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
