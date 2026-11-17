@@ -263,6 +263,80 @@
         </div>
       </div>
     </div>
+      <!-- Elemente, die aus dem Handy hüpfen und sich neben ihm ablegen (Position/Ablauf: main.js „Pop-outs“)
+         data-pop = Kapitel, data-side = left/right (Hero) bzw. in (zum Text hin) / out (vom Text weg),
+         data-ay = top: Höhe relativ zur Oberkante des Handys, data-dy = Versatz, data-r = Drehung, data-ov = Überlappung mit dem Handy -->
+    <div class="pops" data-pops>
+      <!-- Hero -->
+      <div class="pop" data-pop="0" data-side="left" data-ay="top" data-dy="90" data-r="-4" data-ov="36">
+        <div class="pop__in pop-note">
+          <span class="pop-note__icon"><svg viewBox="120 130 535 495"><use href="#mark"/></svg></span>
+          <span class="pop-note__body"><span class="pop-note__meta"><b>vorteile.net</b><span>jetzt</span></span><span class="pop-note__text">Deals der Woche: Sony bis zu 45% 🔥</span></span>
+        </div>
+      </div>
+      <div class="pop" data-pop="0" data-side="right" data-ay="top" data-dy="150" data-r="5" data-ov="30">
+        <div class="pop__in pop-flag"><span class="pop-flag__logo"><img src="assets/img/deals/oral-b-logo.webp" alt="" width="120" height="60"></span><span class="pop-flag__off">Bis zu 66%</span></div>
+      </div>
+      <div class="pop" data-pop="0" data-side="left" data-ay="top" data-dy="290" data-r="3" data-ov="20">
+        <div class="pop__in pop-win"><img src="assets/img/tiguan-sm.webp" alt="" width="719" height="437"><span><small>Gewinnspiel</small><b>VW Tiguan gewinnen</b></span></div>
+      </div>
+
+      <!-- Kapitel 1: Deals -->
+      <div class="pop" data-pop="1" data-side="in" data-dy="-120" data-r="-5" data-ov="60">
+        <div class="pop__in pop-deal">
+          <img src="assets/img/deals/samsung.webp" alt="" width="800" height="400">
+          <span class="pop-deal__flags"><span class="app-flag-logo"><img src="assets/img/deals/samsung-logo.webp" alt=""></span><span class="app-flag-off">Bis zu 30%</span></span>
+          <span class="app-deal__name">Samsung</span>
+        </div>
+      </div>
+      <div class="pop" data-pop="1" data-side="out" data-dy="130" data-r="4" data-ov="40">
+        <div class="pop__in pop-toast"><span class="pop-toast__icon pop-toast__icon--heart"><svg class="i"><use href="#i-heart"/></svg></span>Zu Favoriten hinzugefügt</div>
+      </div>
+      <div class="pop" data-pop="1" data-side="in" data-dy="150" data-r="4" data-ov="30">
+        <div class="pop__in pop-flag"><span class="pop-flag__logo"><img src="assets/img/deals/sony-logo.webp" alt="" width="120" height="60"></span><span class="pop-flag__off">Bis zu 45%</span></div>
+      </div>
+
+      <!-- Kapitel 2: Kategorien -->
+      <div class="pop" data-pop="2" data-side="in" data-dy="-140" data-r="5" data-ov="50">
+        <div class="pop__in pop-tile"><img src="assets/img/app/kat-reisen.webp" alt="" width="300" height="184"></div>
+      </div>
+      <div class="pop" data-pop="2" data-side="in" data-dy="110" data-r="-4" data-ov="30">
+        <div class="pop__in pop-tile"><img src="assets/img/app/kat-technik.webp" alt="" width="300" height="184"></div>
+      </div>
+      <div class="pop" data-pop="2" data-side="out" data-dy="-40" data-r="-3" data-ov="34">
+        <div class="pop__in pop-chip"><b>15</b><span>Welten<small>450+ Marken</small></span></div>
+      </div>
+
+      <!-- Kapitel 3: Vorteils-Shop -->
+      <div class="pop" data-pop="3" data-side="in" data-dy="-80" data-r="-4" data-ov="50">
+        <div class="pop__in pop-prod">
+          <span class="pop-prod__img"><img src="assets/img/products/bose-bt-lautsprecher-soundlink-flex-black.webp" alt="" width="480" height="480"><em>-21%</em></span>
+          <span class="pop-prod__brand">Bose</span>
+          <span class="pop-prod__title">BT Lautsprecher „SoundLink Flex“</span>
+          <span class="pop-prod__price"><b>134,95 €</b><s>169,99 €</s></span>
+        </div>
+      </div>
+      <div class="pop" data-pop="3" data-side="out" data-dy="190" data-r="3" data-ov="44">
+        <div class="pop__in pop-toast"><span class="pop-toast__icon"><svg class="i"><use href="#i-cart"/></svg></span>In den Warenkorb gelegt</div>
+      </div>
+      <div class="pop" data-pop="3" data-side="out" data-dy="-190" data-r="6" data-ov="30">
+        <div class="pop__in pop-tag"><img src="assets/img/products/apple-airtag-2-gen-4er-pack.webp" alt="" width="480" height="480"><span><small>Apple</small><b>-15%</b></span></div>
+      </div>
+
+      <!-- Kapitel 4: Push -->
+      <div class="pop" data-pop="4" data-side="in" data-dy="-110" data-r="-3" data-ov="60">
+        <div class="pop__in pop-note">
+          <span class="pop-note__icon"><svg viewBox="120 130 535 495"><use href="#mark"/></svg></span>
+          <span class="pop-note__body"><span class="pop-note__meta"><b>vorteile.net</b><span>jetzt</span></span><span class="pop-note__text">Deals der Woche 47 sind da 🔥</span></span>
+        </div>
+      </div>
+      <div class="pop" data-pop="4" data-side="in" data-dy="70" data-r="3" data-ov="40">
+        <div class="pop__in pop-win"><img src="assets/img/tiguan-sm.webp" alt="" width="719" height="437"><span><small>Gewinnspiel</small><b>VW Tiguan gewinnen</b></span></div>
+      </div>
+      <div class="pop" data-pop="4" data-side="out" data-dy="-220" data-r="10" data-ov="26">
+        <div class="pop__in pop-bell"><svg class="i"><use href="#i-bell"/></svg><em>3</em></div>
+      </div>
+    </div>
   </div>
 
   <!-- Kapitel 0: Hero -->

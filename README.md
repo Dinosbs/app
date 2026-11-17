@@ -30,6 +30,11 @@ im Handy scrollt mit:
 | Vorteils-Shop | rechts | Produktliste, dann Produktdetail, „In den Warenkorb“, Warenkorb-Zähler springt auf 2 |
 | Push | links | Sperrbildschirm, Mitteilungen kommen nacheinander rein |
 
+In jedem Kapitel hüpfen zusätzlich Elemente aus dem Handy und legen sich federnd daneben ab (Push-Mitteilung,
+Deal-Karte, Kategorie-Kacheln, Produktkarte, „In den Warenkorb gelegt“ …) und fliegen beim Weiterscrollen zurück.
+Sie stehen in  unter ; Seite, Höhe, Drehung und Überlappung steuern die -Attribute
+(Beschreibung im Kommentar darüber). Mobil werden je Kapitel die ersten zwei gezeigt.
+
 Die Screens sind in HTML nachgebaut (Abschnitt `data-story` in `index.html`), also gestochen scharf und leicht
 anzupassen. Die Choreografie steht in `main.js` unter „App-Story“ (`CHAPTER_SCREEN` und Keyframes in `measure()`).
 Mit „Bewegung reduzieren“ im Betriebssystem fallen Drehungen und Mitscrollen weg.

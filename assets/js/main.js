@@ -151,6 +151,7 @@
   var cartBadge = $('[data-cart]');
   var notes = $$('[data-notes] .note');
   var anchors = [], kf = [], tops = [], heights = [], scrollMax = {}, vh = 0, vw = 0, small = false;
+  var pops = $$('[data-pop]'), textBottoms = [];
   var currentScreen = 'splash', splashDone = false, counted = false;
 
   function measure() {
@@ -182,12 +183,14 @@
       var navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 66;
       for (var k = 1; k < kf.length; k++) {
         var textBottom = navH + 4 + (texts[k] ? texts[k].offsetHeight : 200) - 14;
+        textBottoms[k] = textBottom;
         var avail = vh - textBottom - 18;
         var sk = clamp(avail / H, 0.42, Math.min(0.82, (vw * 0.74) / W));
         kf[k].s = sk;
         kf[k].y = textBottom + 6 + (H * sk) / 2 - vh / 2;
       }
     }
+    placePops();
     Object.keys(screens).forEach(function (k) {
       var sc = $('[data-scroll]', screens[k]);
       scrollMax[k] = sc ? Math.max(0, sc.offsetHeight - screens[k].clientHeight) : 0;
@@ -289,12 +292,77 @@
       cartBadge.classList.remove('bump'); void cartBadge.offsetWidth; cartBadge.classList.add('bump');
     }
 
+    updatePops(y);
+
     var q4 = clamp((chapterProgress(4, y) - 0.1) / 0.7, 0, 1);
     notes.forEach(function (nt, k) {
       // die älteste Mitteilung kommt zuerst, neue schieben sich oben drüber
       var order = notes.length - 1 - k;
       nt.classList.toggle('is-in', q4 > 0.04 + order * (0.9 / notes.length));
     });
+  }
+
+  /* ---------------------------------------------------------------- Pop-outs */
+  // Jedes Element startet im Screen des Handys und landet federnd daneben – auf der Seite des Textes (in)
+  // oder außen (out). Positionen werden aus der Ruheposition des Handys im jeweiligen Kapitel berechnet.
+  function placePops() {
+    var perChapter = {};
+    pops.forEach(function (el) {
+      var c = +el.dataset.pop, k = kf[c];
+      if (!k) return;
+      var n = perChapter[c] = (perChapter[c] || 0) + 1;
+      var ps = small ? 0.62 : Math.min(1, Math.max(0.85, k.s));
+      var w = el.offsetWidth, h = el.offsetHeight;
+      var hw = 150 * k.s, hh = 310 * k.s;
+      var side = el.dataset.side, sign;
+      if (side === 'left') sign = -1;
+      else if (side === 'right') sign = 1;
+      else {
+        var dir = k.x === 0 ? 1 : Math.sign(k.x);
+        sign = side === 'in' ? -dir : dir;
+        if (small) sign = side === 'in' ? -1 : 1;
+      }
+      var ov = (+el.dataset.ov || 0) * (small ? 1.3 : 0.75);
+      var tx = k.x + sign * (hw + (w * ps) / 2 - ov);
+      var ty = (el.dataset.ay === 'top' ? k.y - hh : k.y) + (+el.dataset.dy || 0) * k.s * (small ? 1.15 : 1);
+      var maxX = vw / 2 - (w * ps) / 2 - 10;
+      tx = clamp(tx, -maxX, maxX);
+      var minY = -vh / 2 + (h * ps) / 2 + 10, maxY = vh / 2 - (h * ps) / 2 - 10;
+      if (small && c > 0 && textBottoms[c]) minY = Math.max(minY, textBottoms[c] - vh / 2 + (h * ps) / 2 + 4);
+      ty = clamp(ty, minY, maxY);
+      // mobil reichen zwei Elemente je Kapitel
+      var off = small && n > 2;
+      if (!small && c > 0 && texts[c]) {
+        // nicht in den Text ragen
+        var tr = texts[c].getBoundingClientRect();
+        if (k.x > 0 && sign < 0) tx = Math.max(tx, tr.right - vw / 2 + 18 + (w * ps) / 2);
+        if (k.x < 0 && sign > 0) tx = Math.min(tx, tr.left - vw / 2 - 18 - (w * ps) / 2);
+        if (Math.abs(tx - k.x) < hw * 0.55) off = true;
+      }
+      el.classList.toggle('is-off', off);
+      el.style.setProperty('--tx', tx.toFixed(1) + 'px');
+      el.style.setProperty('--ty', ty.toFixed(1) + 'px');
+      el.style.setProperty('--ox', (k.x + sign * hw * 0.2).toFixed(1) + 'px');
+      el.style.setProperty('--oy', clamp(ty, k.y - hh * 0.6, k.y + hh * 0.6).toFixed(1) + 'px');
+      el.style.setProperty('--ps', ps.toFixed(3));
+      el.style.setProperty('--r', (+el.dataset.r || 0) + 'deg');
+      el.style.setProperty('--d', ((n - 1) * 0.14).toFixed(2) + 's');
+      el.style.setProperty('--fd', (-n * 1.7).toFixed(1) + 's');
+    });
+  }
+
+  // Welches Kapitel „steht“ gerade (Handy in Ruhe)? Dessen Elemente hüpfen heraus.
+  function updatePops(y) {
+    var n = anchors.length, rest = -1;
+    for (var r = 0; r < n; r++) {
+      var before = r > 0 ? anchors[r] - anchors[r - 1] : 0;
+      var after = r < n - 1 ? anchors[r + 1] - anchors[r] : 0;
+      if (y >= anchors[r] - before * 0.2 && y <= anchors[r] + after * 0.2) rest = r;
+    }
+    var storyEnd = tops[n - 1] + heights[n - 1];
+    if (y > anchors[n - 1]) rest = y < storyEnd - vh * 0.75 ? n - 1 : -1;
+    if (rest === 0 && !splashDone) rest = -1;
+    pops.forEach(function (el) { el.classList.toggle('is-out', +el.dataset.pop === rest); });
   }
 
   function scrollScreen(name, q) {
