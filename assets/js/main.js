@@ -49,8 +49,7 @@
     introDone = true;
     requestAnimationFrame(function () { requestAnimationFrame(function () { html.classList.add('is-ready'); }); });
   }
-  var fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-  Promise.race([fontsReady, new Promise(function (r) { setTimeout(r, 900); })]).then(intro);
+  intro();
 
   /* ---------------------------------------------------------------- Kopfzeile, Fortschritt, Sticky */
   var nav = $('[data-nav]');
@@ -61,27 +60,42 @@
   var navLinks = $$('.nav__links a');
   var sections = navLinks.map(function (a) { return $(a.getAttribute('href')); });
 
+  var barFill = bar ? bar.firstElementChild : null;
+  var stickyBtn = sticky ? sticky.querySelector('a') : null;
+  var stickyOn = null, lastBar = -1, current = -2;
+  // Seitengeometrie einmal messen und zwischenspeichern (bei Größenänderungen neu)
+  var geo = { docH: 0, vh: 0, storyBottom: 0, dlTop: 0, dlBottom: 0, secTops: [] };
+  var absTop = function (el) { return el ? el.getBoundingClientRect().top + window.scrollY : 0; };
+  function measureUi() {
+    geo.vh = window.innerHeight;
+    geo.docH = document.documentElement.scrollHeight;
+    var st = document.querySelector('[data-story]');
+    geo.storyBottom = st ? absTop(st) + st.offsetHeight : absTop(heroPanel) + heroPanel.offsetHeight;
+    var dl = document.getElementById('download');
+    geo.dlTop = absTop(dl); geo.dlBottom = geo.dlTop + (dl ? dl.offsetHeight : 0);
+    geo.secTops = sections.map(function (s) { return s ? absTop(s) : Infinity; });
+  }
+
   function onScrollUi() {
-    var y = window.scrollY;
-    var h = document.documentElement.scrollHeight - window.innerHeight;
-    bar.style.setProperty('--p', h > 0 ? (y / h).toFixed(4) : 0);
+    var y = window.scrollY, vh = geo.vh;
+    var h = geo.docH - vh;
+    var pr = h > 0 ? Math.round((y / h) * 1000) / 1000 : 0;
+    if (barFill && pr !== lastBar) { lastBar = pr; barFill.style.transform = 'scaleX(' + pr + ')'; }
     nav.classList.toggle('is-solid', y > 40);
-    var heroBottom = heroPanel.getBoundingClientRect().bottom;
     nav.classList.toggle('is-hidden', y > lastY && y > 600 && !document.querySelector('dialog[open]'));
     if (sticky) {
-      var dl = document.getElementById('download');
-      var dlr = dl ? dl.getBoundingClientRect() : null;
-      var ctaVisible = dlr && dlr.top < window.innerHeight && dlr.bottom > 0;
-      var storyEl = document.querySelector('[data-story]');
-      var storyPassed = storyEl ? storyEl.getBoundingClientRect().bottom < window.innerHeight * 0.6 : heroBottom < 0;
-      var on = storyPassed && !ctaVisible && (window.innerHeight + y < document.documentElement.scrollHeight - 40) && !html.classList.contains('is-redirecting');
-      sticky.classList.toggle('is-on', on);
-      sticky.setAttribute('aria-hidden', on ? 'false' : 'true');
-      var sb = sticky.querySelector('a'); if (sb) sb.tabIndex = on ? 0 : -1;
+      var ctaVisible = geo.dlTop - y < vh && geo.dlBottom - y > 0;
+      var on = geo.storyBottom - y < vh * 0.6 && !ctaVisible && (vh + y < geo.docH - 40) && !html.classList.contains('is-redirecting');
+      if (on !== stickyOn) {
+        stickyOn = on;
+        sticky.classList.toggle('is-on', on);
+        sticky.setAttribute('aria-hidden', on ? 'false' : 'true');
+        if (stickyBtn) stickyBtn.tabIndex = on ? 0 : -1;
+      }
     }
-    var mid = window.innerHeight * 0.35, current = -1;
-    sections.forEach(function (s, i) { if (s && s.getBoundingClientRect().top < mid) current = i; });
-    navLinks.forEach(function (a, i) { a.classList.toggle('is-current', i === current); });
+    var mid = y + vh * 0.35, cur = -1;
+    geo.secTops.forEach(function (t, i) { if (t < mid) cur = i; });
+    if (cur !== current) { current = cur; navLinks.forEach(function (a, i) { a.classList.toggle('is-current', i === cur); }); }
     lastY = y;
   }
 
@@ -143,7 +157,7 @@
   var CHAPTER_SCREEN = ['start', 'start', 'cats', 'shop', 'lock'];
   var SCREEN_TAB = { start: 'start', cats: 'cats', shop: 'cats' };
   var hearts = $$('[data-hearts] .app-heart');
-  var searchField = $('[data-search]');
+  var searchField = $('[data-search]'), searchTop = null;
   var stickySearch = $('[data-sticky-search]');
   var catTiles = $$('[data-cats] img');
   var detail = $('[data-detail]');
@@ -151,6 +165,18 @@
   var cartBadge = $('[data-cart]');
   var notes = $$('[data-notes] .note');
   var anchors = [], kf = [], tops = [], heights = [], scrollMax = {}, vh = 0, vw = 0, small = false;
+  var halo = $('.story__halo');
+  var glare = $('.phone__glare');
+  var scrollers = {};
+  Object.keys(screens).forEach(function (k) { scrollers[k] = $('[data-scroll]', screens[k]); });
+  var lastSet = new WeakMap();
+  // Stil nur schreiben, wenn sich der Wert wirklich ändert
+  var put = function (el, prop, val) {
+    if (!el) return;
+    var m = lastSet.get(el); if (!m) { m = {}; lastSet.set(el, m); }
+    if (m[prop] === val) return;
+    m[prop] = val; el.style[prop] = val;
+  };
   var pops = $$('[data-pop]'), textBottoms = [];
   var currentScreen = 'splash', splashDone = false, counted = false;
 
@@ -192,7 +218,7 @@
     }
     placePops();
     Object.keys(screens).forEach(function (k) {
-      var sc = $('[data-scroll]', screens[k]);
+      var sc = scrollers[k];
       scrollMax[k] = sc ? Math.max(0, sc.offsetHeight - screens[k].clientHeight) : 0;
     });
   }
@@ -216,10 +242,14 @@
     return clamp((y - (tops[i] - vh * 0.5)) / heights[i], 0, 1);
   }
 
+  var storyIdle = false;
   function onScrollStory() {
     if (!device || !anchors.length) return;
     var y = window.scrollY;
     var n = anchors.length;
+    var beyond = y > tops[n - 1] + heights[n - 1] + vh * 0.5;
+    if (beyond && storyIdle) return;
+    storyIdle = beyond;
 
     // Segment zwischen zwei Ankern
     var i = 0;
@@ -236,11 +266,12 @@
       rz = -dir * spin * 4;
       yy -= spin * (small ? 10 : 24);
     }
-    device.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + yy.toFixed(1) + 'px,0) scale(' + s.toFixed(4) + ') rotateY(' + ry.toFixed(2) + 'deg) rotateZ(' + rz.toFixed(2) + 'deg)';
-    device.style.setProperty('--glare', (50 + ry * 2.2).toFixed(1) + '%');
-    stage.style.setProperty('--hx', x.toFixed(1) + 'px');
-    stage.style.setProperty('--hy', yy.toFixed(1) + 'px');
-    stage.style.setProperty('--ho', clamp((y - vh * 0.25) / (vh * 0.4), 0, 1).toFixed(3));
+    put(device, 'transform', 'translate3d(' + x.toFixed(1) + 'px,' + yy.toFixed(1) + 'px,0) scale(' + s.toFixed(4) + ') rotateY(' + ry.toFixed(2) + 'deg) rotateZ(' + rz.toFixed(2) + 'deg)');
+    // während der Bewegung als eigene GPU-Ebene, in Ruhe wieder gestochen scharf
+    device.classList.toggle('is-moving', !reduce && e > 0.002 && e < 0.998);
+    put(glare, 'backgroundPosition', (50 + ry * 2.2).toFixed(0) + '% 0');
+    put(halo, 'transform', 'translate3d(' + x.toFixed(0) + 'px,' + yy.toFixed(0) + 'px,0)');
+    put(halo, 'opacity', clamp((y - vh * 0.25) / (vh * 0.4), 0, 1).toFixed(2));
 
     // Screen wechseln, sobald die Drehung den halben Weg hat
     var idx = e > 0.5 ? i + 1 : i;
@@ -250,8 +281,8 @@
     // Hero-Text blendet aus
     if (heroCopy) {
       var ho = clamp(1 - y / (vh * 0.42), 0, 1);
-      heroCopy.style.opacity = ho.toFixed(3);
-      heroCopy.style.transform = 'translate3d(0,' + (-y * 0.25).toFixed(1) + 'px,0)';
+      put(heroCopy, 'opacity', ho.toFixed(3));
+      put(heroCopy, 'transform', 'translate3d(0,' + (-Math.min(y, vh) * 0.25).toFixed(1) + 'px,0)');
     }
 
     // Kapiteltexte ein-/ausblenden
@@ -262,8 +293,9 @@
         ? smooth(clamp((q - 0.2) / 0.12, 0, 1)) * (1 - smooth(clamp((q - 0.7) / 0.1, 0, 1)))
         : smooth(clamp((q - 0.1) / 0.16, 0, 1)) * (1 - smooth(clamp((q - 0.8) / 0.14, 0, 1)));
       var t = texts[c];
-      t.style.opacity = o.toFixed(3);
-      t.style.transform = reduce ? '' : 'translate3d(0,' + ((q < 0.5 ? 1 : -1) * (1 - o) * 40).toFixed(1) + 'px,0)';
+      put(t, 'opacity', o.toFixed(3));
+      put(t, 'visibility', o > 0 ? 'visible' : 'hidden');
+      if (!reduce) put(t, 'transform', 'translate3d(0,' + ((q < 0.5 ? 1 : -1) * (1 - o) * 40).toFixed(1) + 'px,0)');
       if (c === 1 && o > 0.6 && !counted) { counted = true; countUp($$('[data-count]', t)); }
     }
 
@@ -272,7 +304,8 @@
     scrollScreen('start', q1);
     // Suchleiste dockt oben an, sobald sie unter die Statusleiste scrollen würde
     if (searchField && stickySearch) {
-      stickySearch.classList.toggle('is-on', searchField.offsetTop - scrollMax.start * (reduce ? 0 : q1) <= 54);
+      if (searchTop == null) searchTop = searchField.offsetTop;
+      stickySearch.classList.toggle('is-on', searchTop - scrollMax.start * (reduce ? 0 : q1) <= 54);
     }
     hearts.forEach(function (h, k) { if (k % 3 !== 1) h.classList.toggle('on', q1 > (k + 0.5) / (hearts.length + 1)); });
 
@@ -366,8 +399,7 @@
   }
 
   function scrollScreen(name, q) {
-    var sc = $('[data-scroll]', screens[name]);
-    if (sc) sc.style.setProperty('--sy', (-scrollMax[name] * (reduce ? 0 : q)).toFixed(1) + 'px');
+    put(scrollers[name], 'transform', 'translate3d(0,' + (-scrollMax[name] * (reduce ? 0 : q)).toFixed(1) + 'px,0)');
   }
 
   // Startbildschirm: kurzes Logo-Intro, dann Start
@@ -380,13 +412,13 @@
     statusbar.classList.add('is-light');
     tabbar.classList.add('is-hidden');
     measure();
-    window.addEventListener('resize', function () { measure(); onScroll(); });
+    // Bilder für Handy-Screens und Pop-outs erst nach dem Seitenaufbau laden (nicht im ersten Bild sichtbar)
+    var loadDeferred = function () {
+      $$('img[data-src]').forEach(function (img) { img.src = img.getAttribute('data-src'); img.removeAttribute('data-src'); });
+    };
     window.addEventListener('load', function () {
-      measure(); onScroll();
-      // Bilder im Handy vorladen, damit beim Scrollen nichts nachlädt
-      $$('.phone img[loading="lazy"]').forEach(function (img) { img.loading = 'eager'; });
+      (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(loadDeferred, { timeout: 1200 });
     });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { measure(); onScroll(); });
     var splashWait = function () { setTimeout(endSplash, reduce ? 0 : 2300); };
     if (html.classList.contains('is-ready')) splashWait();
     else {
@@ -397,12 +429,17 @@
 
   /* ---------------------------------------------------------------- Zeiger-Lichtschein auf Karten */
   if (finePointer) {
+    var glowEv = null;
     document.addEventListener('pointermove', function (e) {
-      var g = e.target.closest && e.target.closest('.glow');
-      if (!g) return;
-      var r = g.getBoundingClientRect();
-      g.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-      g.style.setProperty('--my', (e.clientY - r.top) + 'px');
+      if (!glowEv) requestAnimationFrame(function () {
+        var ev = glowEv; glowEv = null;
+        var g = ev.target.closest && ev.target.closest('.glow');
+        if (!g) return;
+        var r = g.getBoundingClientRect();
+        g.style.setProperty('--mx', (ev.clientX - r.left) + 'px');
+        g.style.setProperty('--my', (ev.clientY - r.top) + 'px');
+      });
+      glowEv = e;
     }, { passive: true });
   }
 
@@ -423,27 +460,38 @@
     });
   }
 
+  var wg = { carTop: 0, panelTop: 0, panelH: 0, stepsTop: 0, stepsH: 0 };
+  var railFill = $('.steps__rail i');
+  function measureWin() {
+    if (!winPanel) return;
+    wg.panelTop = winPanel.getBoundingClientRect().top + window.scrollY;
+    wg.panelH = winPanel.offsetHeight;
+    wg.carTop = car ? wg.panelTop + car.offsetTop : 0;
+    wg.stepsTop = steps ? steps.getBoundingClientRect().top + window.scrollY : 0;
+    wg.stepsH = steps ? steps.offsetHeight : 0;
+  }
   function onScrollWin() {
-    var vh = window.innerHeight;
+    if (!winPanel) return;
+    var vh = geo.vh || window.innerHeight, y = window.scrollY;
+    // nur rechnen, wenn das Gewinnspiel in der Nähe ist
+    if (y + vh < wg.panelTop - 100 || y > wg.panelTop + wg.panelH + 100) return;
     if (car && !reduce) {
-      var r = car.getBoundingClientRect();
-      var p = clamp((vh - r.top) / (vh * 0.85), 0, 1);
+      var p = clamp((vh - (wg.carTop - y)) / (vh * 0.85), 0, 1);
       var e = easeOut(p);
-      car.style.setProperty('--cx', ((1 - e) * 42).toFixed(2) + 'vw');
-      car.style.setProperty('--cs', (0.86 + e * 0.14).toFixed(3));
-      car.style.opacity = clamp(p * 1.6, 0, 1).toFixed(3);
+      put(car, 'transform', 'translate3d(' + ((1 - e) * 42).toFixed(2) + 'vw,0,0) scale(' + (0.86 + e * 0.14).toFixed(3) + ')');
+      put(car, 'opacity', clamp(p * 1.6, 0, 1).toFixed(3));
     }
     if (ghost && !reduce) {
-      var pr = winPanel.getBoundingClientRect();
-      var gp = clamp((vh - pr.top) / (vh + pr.height), 0, 1);
-      ghost.style.setProperty('--gx', ((0.5 - gp) * 40).toFixed(2) + 'vw');
+      var gp = clamp((vh - (wg.panelTop - y)) / (vh + wg.panelH), 0, 1);
+      put(ghost, 'transform', 'translate3d(calc(-50% + ' + ((0.5 - gp) * 40).toFixed(2) + 'vw),0,0)');
     }
     if (steps) {
-      var sr = steps.getBoundingClientRect();
-      var sp = clamp((vh * 0.82 - sr.top) / (sr.height * 0.85), 0, 1);
-      if (reduce) sp = sr.top < vh * 0.8 ? 1 : 0;
+      var top = wg.stepsTop - y;
+      var sp = clamp((vh * 0.82 - top) / (wg.stepsH * 0.85), 0, 1);
+      if (reduce) sp = top < vh * 0.8 ? 1 : 0;
       var on0 = 0.35 / (stepEls.length + 0.6), onN = (stepEls.length - 1 + 0.35) / (stepEls.length + 0.6);
-      steps.style.setProperty('--rp', clamp((sp - on0) / (onN - on0), 0, 1).toFixed(3));
+      var rp = clamp((sp - on0) / (onN - on0), 0, 1).toFixed(3);
+      put(railFill, 'transform', (rail && rail.classList.contains('is-vertical') ? 'scaleY(' : 'scaleX(') + rp + ')');
       stepEls.forEach(function (s, i) { s.classList.toggle('is-on', sp > (i + 0.35) / (stepEls.length + 0.6)); });
       var fin = sp > 0.93;
       done.classList.toggle('is-on', fin);
@@ -466,9 +514,6 @@
     }
   }
   placeRail();
-  window.addEventListener('resize', placeRail);
-  window.addEventListener('load', placeRail);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeRail);
 
   /* ---------------------------------------------------------------- Konfetti */
   var canvas = $('[data-confetti]');
@@ -659,7 +704,37 @@
     ticking = true;
     requestAnimationFrame(function () { ticking = false; onScrollUi(); onScrollStory(); onScrollWin(); });
   }
+  var measurePending = false;
+  function remeasure() {
+    if (measurePending) return;
+    measurePending = true;
+    requestAnimationFrame(function () {
+      measurePending = false;
+      if (story) measure();
+      placeRail();
+      measureUi(); measureWin();
+      onScrollUi(); onScrollStory(); onScrollWin();
+    });
+  }
   window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll);
+  window.addEventListener('resize', remeasure);
+  window.addEventListener('load', remeasure);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
+  if ('ResizeObserver' in window) {
+    var lastDocH = 0;
+    new ResizeObserver(function () {
+      var hNow = document.documentElement.scrollHeight;
+      if (Math.abs(hNow - lastDocH) > 2) { lastDocH = hNow; remeasure(); }
+    }).observe(document.body);
+  }
+  measureUi(); measureWin();
   onScroll();
+
+  /* ---------------------------------------------------------------- Animationen außerhalb des Bildschirms pausieren */
+  if ('IntersectionObserver' in window) {
+    var idleIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { en.target.classList.toggle('is-idle', !en.isIntersecting); });
+    }, { rootMargin: '100px 0px' });
+    $$('.hero__panel, .win__panel, .brands, .cta__panel').forEach(function (el) { idleIO.observe(el); });
+  }
 })();
