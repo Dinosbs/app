@@ -69,6 +69,15 @@
   var barFill = bar ? bar.firstElementChild : null;
   var stickyBtn = sticky ? sticky.querySelector('a') : null;
   var stickyOn = null, lastBar = -1, current = -2;
+  var qrFloat = $('[data-qr-float]'), qrOn = null, qrClosed = false;
+  try { qrClosed = sessionStorage.getItem('vn-qr-closed') === '1'; } catch (e) {}
+  if (qrFloat) {
+    $('[data-qr-close]', qrFloat).addEventListener('click', function () {
+      qrClosed = true; qrOn = false;
+      qrFloat.classList.remove('is-on'); qrFloat.setAttribute('aria-hidden', 'true');
+      try { sessionStorage.setItem('vn-qr-closed', '1'); } catch (e) {}
+    });
+  }
   // Seitengeometrie einmal messen und zwischenspeichern (bei Größenänderungen neu)
   var geo = { docH: 0, vh: 0, storyBottom: 0, dlTop: 0, dlBottom: 0, secTops: [] };
   var absTop = function (el) { return el ? el.getBoundingClientRect().top + window.scrollY : 0; };
@@ -82,8 +91,13 @@
     var wc = document.querySelector('.win__cta');
     geo.wcTop = absTop(wc); geo.wcBottom = geo.wcTop + (wc ? wc.offsetHeight : 0);
     geo.secTops = sections.map(function (s) { return s ? absTop(s) : Infinity; });
+    var car = document.querySelector('[data-car]');
+    geo.carBottom = car ? absTop(car) + car.offsetHeight : geo.storyBottom;
   }
 
+  function ctaVisibleAll(y, vh) {
+    return (geo.dlTop - y < vh && geo.dlBottom - y > 0) || (geo.wcTop - y < vh - 40 && geo.wcBottom - y > 60);
+  }
   function onScrollUi() {
     var y = window.scrollY, vh = geo.vh;
     var h = geo.docH - vh;
@@ -92,13 +106,23 @@
     nav.classList.toggle('is-solid', y > 40);
     nav.classList.toggle('is-hidden', y > lastY && y > 600 && !document.querySelector('dialog[open]'));
     if (sticky) {
-      var ctaVisible = (geo.dlTop - y < vh && geo.dlBottom - y > 0) || (geo.wcTop - y < vh - 40 && geo.wcBottom - y > 60);
+      var ctaVisible = ctaVisibleAll(y, vh);
       var on = geo.storyBottom - y < vh * 0.6 && !ctaVisible && (vh + y < geo.docH - 40) && !html.classList.contains('is-redirecting');
       if (on !== stickyOn) {
         stickyOn = on;
         sticky.classList.toggle('is-on', on);
         sticky.setAttribute('aria-hidden', on ? 'false' : 'true');
         if (stickyBtn) stickyBtn.tabIndex = on ? 0 : -1;
+      }
+    }
+    if (qrFloat && !qrClosed) {
+      // ab dem Gewinnspiel (nach dem Auto), nicht doppelt neben anderen QR-Codes und nicht über der Fußzeile
+      var qo = geo.carBottom - y < vh * 0.55 && !ctaVisibleAll(y, vh) && (vh + y < geo.docH - 220);
+      if (qo !== qrOn) {
+        qrOn = qo;
+        qrFloat.classList.toggle('is-on', qo);
+        qrFloat.setAttribute('aria-hidden', qo ? 'false' : 'true');
+        $('[data-qr-close]', qrFloat).tabIndex = qo ? 0 : -1;
       }
     }
     var mid = y + vh * 0.35, cur = -1;
@@ -294,7 +318,7 @@
     // während der Bewegung als eigene GPU-Ebene, in Ruhe wieder gestochen scharf
     device.classList.toggle('is-moving', !reduce && e > 0.002 && e < 0.998);
     put(glare, 'backgroundPosition', (50 + ry * 2.2).toFixed(0) + '% 0');
-    put(halo, 'transform', 'translate3d(' + x.toFixed(0) + 'px,' + yy.toFixed(0) + 'px,0)');
+    put(halo, 'transform', 'translate3d(' + x.toFixed(0) + 'px,' + yy.toFixed(0) + 'px,0) scale(' + s.toFixed(3) + ')');
     put(halo, 'opacity', clamp((y - vh * 0.25) / (vh * 0.4), 0, 1).toFixed(2));
 
     // Screen wechseln, sobald die Drehung den halben Weg hat
@@ -386,6 +410,8 @@
         if (small) sign = side === 'in' ? -1 : 1;
       }
       var ov = (+el.dataset.ov || 0) * (small ? 1.3 : 0.75);
+      // Hero am Desktop: bei wenig Platz neben dem Handy die Karten etwas verkleinern statt das Handy zu verdecken
+      if (c === 0 && !small) ps = Math.min(ps, Math.max(0.72, (vw / 2 - hw + ov - 14) / w));
       var tx = k.x + sign * (hw + (w * ps) / 2 - ov);
       var dy = small && el.dataset.mdy ? +el.dataset.mdy : (+el.dataset.dy || 0);   // mobil eigene Höhe möglich
       var ty = (el.dataset.ay === 'top' ? k.y - hh : k.y) + dy * k.s * (small ? 1.15 : 1);
@@ -787,6 +813,6 @@
     var idleIO = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) { en.target.classList.toggle('is-idle', !en.isIntersecting); });
     }, { rootMargin: '100px 0px' });
-    $$('.hero__panel, .win__panel, .brands, .cta__panel').forEach(function (el) { idleIO.observe(el); });
+    $$('.hero__panel, .win__panel, .brands, .final-cta__card').forEach(function (el) { idleIO.observe(el); });
   }
 })();
