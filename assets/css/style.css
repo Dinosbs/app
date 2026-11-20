@@ -15,7 +15,6 @@
 @font-face { font-family: "Barlow"; font-weight: 400; font-style: normal; font-display: swap; src: url(../fonts/barlow-400.woff2) format("woff2"); }
 @font-face { font-family: "Barlow"; font-weight: 500; font-style: normal; font-display: swap; src: url(../fonts/barlow-500.woff2) format("woff2"); }
 @font-face { font-family: "Barlow"; font-weight: 600; font-style: normal; font-display: swap; src: url(../fonts/barlow-600.woff2) format("woff2"); }
-@font-face { font-family: "Barlow"; font-weight: 700; font-style: normal; font-display: swap; src: url(../fonts/barlow-700.woff2) format("woff2"); }
 @font-face { font-family: "Caveat"; font-weight: 700; font-style: normal; font-display: swap; src: url(../fonts/caveat-700.woff2) format("woff2"); }
 
 @property --logo-type { syntax: "<color>"; inherits: true; initial-value: #fff; }
@@ -235,7 +234,7 @@ main { overflow-x: clip; }
 .nav__win { display: inline-flex; align-items: center; gap: .45em; }
 .nav__links a.nav__win { background: rgba(255, 255, 255, .22); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5), inset 0 1px 0 rgba(255, 255, 255, .6); }
 .nav__win i, .nav__gift i { position: relative; width: 8px; height: 8px; border-radius: 50%; background: #ffd23f; box-shadow: 0 0 0 3px rgba(255, 210, 63, .3); }
-.nav__win i::after, .nav__gift i::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid rgba(255, 210, 63, .7); animation: win-ping 2.2s var(--ease) infinite; }
+.nav__win i::after, .nav__gift i::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid rgba(255, 210, 63, .7); animation: win-ping 2.2s var(--ease) 1.2s 4; }
 @keyframes win-ping { from { transform: scale(.8); opacity: 1; } to { transform: scale(2.4); opacity: 0; } }
 .nav.is-solid .nav__links a.nav__win { color: var(--blue-700); background: rgba(18, 170, 224, .12); box-shadow: inset 0 0 0 1px rgba(18, 170, 224, .28); }
 .nav.is-solid .nav__links a.nav__win:hover { background: rgba(18, 170, 224, .2); }
@@ -255,7 +254,7 @@ main { overflow-x: clip; }
 .story__track { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 .story__stage {
   position: sticky; top: 0; height: 100vh; height: 100svh;
-  display: grid; place-items: center; pointer-events: none; perspective: 1800px;
+  display: grid; place-items: center; place-content: center; pointer-events: none; perspective: 1800px;
 }
 .story__halo {
   position: absolute; left: 50%; top: 50%; width: 760px; height: 760px; margin: -380px 0 0 -380px; border-radius: 50%;
@@ -1008,9 +1007,15 @@ main { overflow-x: clip; }
   .win__panel { padding-top: 48px; }
   .steps { margin-top: 44px; }
 }
+/* Handy: Glas ohne backdrop-filter (deckender), Hero-Verlauf ohne Dauer-Animation – spart GPU beim Scrollen */
+@media (max-width: 819.98px) {
+  .nav__inner::before { background: linear-gradient(150deg, rgba(255, 255, 255, .97), rgba(255, 255, 255, .9)); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  [data-os="ios"] .sticky-app, [data-os="android"] .sticky-app { background: linear-gradient(150deg, rgba(255, 255, 255, .98), rgba(255, 255, 255, .93)); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .hero__panel::before { animation: none; inset: 0; }
+}
 /* Story mobil (Hochformat): Text oben angepinnt (mit weichem Hintergrund), das Handy füllt den Platz darunter (JS misst nach) */
 @media (max-width: 819.98px) and (orientation: portrait), (max-width: 819.98px) and (min-height: 500px) {
-  .chapter--left, .chapter--right { z-index: 6; height: 175vh; }
+  .chapter--left, .chapter--right { z-index: 6; height: 160vh; }
   .chapter__text {
     top: calc(var(--nav-h) + 4px); height: auto; width: auto; margin: 0 !important; padding: 6px var(--gutter) 26px;
     align-items: center; text-align: center;

@@ -201,7 +201,7 @@
   var buyBtn = $('[data-buy]');
   var cartBadge = $('[data-cart]');
   var notes = $$('[data-notes] .note');
-  var anchors = [], kf = [], tops = [], heights = [], scrollMax = {}, vh = 0, vw = 0, small = false, navH = 66, sMid = 0.7;
+  var anchors = [], kf = [], tops = [], heights = [], scrollMax = {}, vh = 0, sh = 0, vw = 0, small = false, navH = 66;
   var halo = $('.story__halo');
   var glare = $('.phone__glare');
   var scrollers = {};
@@ -219,6 +219,9 @@
 
   function measure() {
     vh = window.innerHeight; vw = window.innerWidth;
+    // Höhe der Bühne (100svh). Auf dem iPhone wird innerHeight beim Scrollen größer (Adressleiste klappt ein),
+    // die Bühne aber nicht – alle Positionen im Handy-Bereich beziehen sich deshalb auf die Bühne.
+    sh = (stage && stage.offsetHeight) || vh;
     small = vw < 820 && (vh >= 500 || vh >= vw);   // Hochformat; Handys quer bekommen das Desktop-Layout
     var sy = window.scrollY;
     tops = chapters.map(function (c) { return c.getBoundingClientRect().top + sy; });
@@ -226,15 +229,15 @@
     anchors = chapters.map(function (c, i) { return i === 0 ? 0 : tops[i] + (heights[i] - vh) / 2; });
 
     var H = 620, W = 300;
-    var rest = small ? Math.min(0.66, (vh * 0.5) / H, (vw * 0.62) / W) : Math.min(1.02, (vh - 150) / H);
-    var restY = small ? vh / 2 - (H * rest) / 2 - 18 : 0;
+    var rest = small ? Math.min(0.66, (sh * 0.5) / H, (vw * 0.62) / W) : Math.min(1.02, (sh - 150) / H);
+    var restY = small ? sh / 2 - (H * rest) / 2 - 18 : 0;
     var X = small ? 0 : Math.min(vw * 0.23, 330);
     var ry = small ? 0 : 13;
     // Hero: groß, mittig, oben angeschnitten unter dem Text
-    var heroScale = small ? Math.min(1, (vw * 0.8) / W) : Math.min(1.32, (vh * 0.95) / H);
-    var copyBottom = heroCopy ? offsetWithin(heroCopy, null).y + heroCopy.offsetHeight : vh * 0.45;
+    var heroScale = small ? Math.min(1, (vw * 0.8) / W) : Math.min(1.32, (sh * 0.95) / H);
+    var copyBottom = heroCopy ? offsetWithin(heroCopy, null).y + heroCopy.offsetHeight : sh * 0.45;
     var phoneTop = copyBottom + (small ? 26 : 34);
-    var heroY = phoneTop + (H * heroScale) / 2 - vh / 2;
+    var heroY = phoneTop + (H * heroScale) / 2 - sh / 2;
     heroCopyBottom = copyBottom;
     kf = [
       { x: 0, y: heroY, s: heroScale, ry: 0 },
@@ -244,17 +247,19 @@
       { x: -X, y: restY, s: rest, ry: ry }
     ];
     if (small) {
-      // Mobil: Text klebt oben, das Handy nutzt den Platz bis zum unteren Rand so gut wie möglich
+      // Mobil: Text klebt oben, das Handy steht ruhig darunter – in beiden Kapiteln an derselben Stelle
+      // (nach dem höchsten Kapiteltext), damit es zwischen den Kapiteln nicht springt.
       navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 66;
-      // während des Wechsels (Text ausgeblendet) wird das Handy mittig größer gezeigt
-      sMid = Math.min(0.78, (vh - navH - 48) / H, (vw * 0.7) / W);
-      for (var k = 1; k < kf.length; k++) {
-        var textBottom = navH + 4 + (texts[k] ? texts[k].offsetHeight : 200) - 14;
-        textBottoms[k] = textBottom;
-        var avail = vh - textBottom - 18;
-        var sk = clamp(avail / H, 0.42, Math.min(0.82, (vw * 0.74) / W));
-        kf[k].s = sk;
-        kf[k].y = textBottom + 6 + (H * sk) / 2 - vh / 2;
+      var textBottom = 0;
+      for (var k = 1; k < chapters.length; k++) {
+        textBottoms[k] = navH + 4 + (texts[k] ? texts[k].offsetHeight : 200) - 14;
+        textBottom = Math.max(textBottom, textBottoms[k]);
+      }
+      var sk = clamp((sh - textBottom - 18) / H, 0.42, Math.min(0.82, (vw * 0.74) / W));
+      for (var m = 1; m < kf.length; m++) {
+        textBottoms[m] = textBottom;
+        kf[m].s = sk;
+        kf[m].y = textBottom + 6 + (H * sk) / 2 - sh / 2;
       }
     }
     placePops();
@@ -303,20 +308,20 @@
     var e = reduce ? (u > 0.5 ? 1 : 0) : inOut(clamp((u - hold) / (1 - 2 * hold), 0, 1));
     var a = kf[i], b = kf[i + 1];
     var x = lerp(a.x, b.x, e), yy = lerp(a.y, b.y, e), s = lerp(a.s, b.s, e), ry = lerp(a.ry, b.ry, e), rz = 0;
-    if (!reduce) {
+    if (!reduce && !small) {
+      // Desktop: mit Drehung zur anderen Seite schwenken (mobil bleibt das Handy ruhig, ohne Drehung)
       var dir = (b.x - a.x) === 0 ? 1 : Math.sign(b.x - a.x);
       var spin = Math.sin(Math.PI * e);
-      ry += dir * spin * (small ? 24 : 34);
+      ry += dir * spin * 34;
       rz = -dir * spin * 4;
-      if (small) {
-        // mobil: beim Drehen in die freie Bildschirmmitte steigen und etwas größer werden
-        yy = lerp(yy, navH / 2, spin);
-        s = lerp(s, Math.max(s, sMid), spin);
-      } else yy -= spin * 24;
+      yy -= spin * 24;
     }
-    put(device, 'transform', 'translate3d(' + x.toFixed(1) + 'px,' + yy.toFixed(1) + 'px,0) scale(' + s.toFixed(4) + ') rotateY(' + ry.toFixed(2) + 'deg) rotateZ(' + rz.toFixed(2) + 'deg)');
+    put(device, 'transform', 'translate3d(' + x.toFixed(1) + 'px,' + yy.toFixed(1) + 'px,0) scale(' + s.toFixed(4) + ')' +
+        (small ? '' : ' rotateY(' + ry.toFixed(2) + 'deg) rotateZ(' + rz.toFixed(2) + 'deg)'));
     // während der Bewegung als eigene GPU-Ebene, in Ruhe wieder gestochen scharf
-    device.classList.toggle('is-moving', !reduce && e > 0.002 && e < 0.998);
+    // nur wenn sich wirklich etwas bewegt (mobil stehen beide Kapitel an derselben Stelle – dann keine eigene Ebene)
+    var moves = a.x !== b.x || a.y !== b.y || a.s !== b.s || !small;
+    device.classList.toggle('is-moving', !reduce && moves && e > 0.002 && e < 0.998);
     put(glare, 'backgroundPosition', (50 + ry * 2.2).toFixed(0) + '% 0');
     put(halo, 'transform', 'translate3d(' + x.toFixed(0) + 'px,' + yy.toFixed(0) + 'px,0) scale(' + s.toFixed(3) + ')');
     put(halo, 'opacity', clamp((y - vh * 0.25) / (vh * 0.4), 0, 1).toFixed(2));
@@ -336,14 +341,22 @@
     // Kapiteltexte ein-/ausblenden
     for (var c = 1; c < n; c++) {
       var q = chapterProgress(c, y);
-      // mobil liegen Text und Handy übereinander: Text erst zeigen, wenn das Handy steht
-      var o = small
-        ? smooth(clamp((q - 0.2) / 0.12, 0, 1)) * (1 - smooth(clamp((q - 0.7) / 0.1, 0, 1)))
-        : smooth(clamp((q - 0.1) / 0.16, 0, 1)) * (1 - smooth(clamp((q - 0.8) / 0.14, 0, 1)));
+      var o;
+      if (small) {
+        // mobil liegen Text und Handy übereinander: Kapitel 1 erst zeigen, wenn das Handy aus dem Hero angekommen ist;
+        // das letzte Kapitel ausblenden, bevor die Bühne mit dem Story-Ende nach oben wegscrollt
+        // erst einblenden, wenn der Text oben angepinnt ist (vorher scrollt er noch über das Handy)
+        var fin = Math.max(c === 1 ? 0.27 : 0.14, (vh * 0.5 - navH - 4) / heights[c] + 0.012);
+        var fout = c === n - 1 ? Math.min(0.78, 1 - (sh - vh * 0.5) / heights[c] - 0.09) : 0.78;
+        o = smooth(clamp((q - fin) / 0.1, 0, 1)) * (1 - smooth(clamp((q - fout) / 0.08, 0, 1)));
+      } else {
+        o = smooth(clamp((q - 0.1) / 0.16, 0, 1)) * (1 - smooth(clamp((q - 0.8) / 0.14, 0, 1)));
+      }
       var t = texts[c];
       put(t, 'opacity', o.toFixed(3));
       put(t, 'visibility', o > 0 ? 'visible' : 'hidden');
-      if (!reduce) put(t, 'transform', 'translate3d(0,' + ((q < 0.5 ? 1 : -1) * (1 - o) * 40).toFixed(1) + 'px,0)');
+      // mobil gleitet der Text nur von oben herein (nie nach unten ins Handy)
+      if (!reduce) put(t, 'transform', 'translate3d(0,' + (small ? -(1 - o) * 14 : (q < 0.5 ? 1 : -1) * (1 - o) * 40).toFixed(1) + 'px,0)');
       if (c === 1 && o > 0.6 && !counted) { counted = true; countUp($$('[data-count]', t)); }
     }
 
@@ -417,12 +430,12 @@
       var ty = (el.dataset.ay === 'top' ? k.y - hh : k.y) + dy * k.s * (small ? 1.15 : 1);
       var maxX = vw / 2 - (w * ps) / 2 - 10;
       tx = clamp(tx, -maxX, maxX);
-      var minY = -vh / 2 + (h * ps) / 2 + (vh < 500 ? 58 : 10), maxY = vh / 2 - (h * ps) / 2 - 10;   // flach: unter der Kopfzeile bleiben
-      if (small && c > 0 && textBottoms[c]) minY = Math.max(minY, textBottoms[c] - vh / 2 + (h * ps) / 2 + 4);
+      var minY = -sh / 2 + (h * ps) / 2 + (vh < 500 ? 58 : 10), maxY = sh / 2 - (h * ps) / 2 - 10;   // flach: unter der Kopfzeile bleiben
+      if (small && c > 0 && textBottoms[c]) minY = Math.max(minY, textBottoms[c] - sh / 2 + (h * ps) / 2 + 4);
       ty = clamp(ty, minY, maxY);
       if (small && el.dataset.mpos === 'bottom') {
         ps = Math.min(1, (vw - 32) / w);
-        tx = 0; ty = vh / 2 - (h * ps) / 2 - 22;
+        tx = 0; ty = sh / 2 - (h * ps) / 2 - 22;
       }
       // mobil reichen zwei Elemente je Kapitel
       var off = small && n > 2;
@@ -434,7 +447,7 @@
         if (Math.abs(tx - k.x) < hw * 0.55) off = true;
       }
       // Hero: nie über Überschrift, Text oder Store-Buttons legen (z. B. Handy quer)
-      if (c === 0 && vh / 2 + ty - (h * ps) / 2 < heroCopyBottom + 6) off = true;
+      if (c === 0 && sh / 2 + ty - (h * ps) / 2 < heroCopyBottom + 6) off = true;
       el.classList.toggle('is-off', off);
       el.style.setProperty('--tx', tx.toFixed(1) + 'px');
       el.style.setProperty('--ty', ty.toFixed(1) + 'px');
@@ -813,6 +826,6 @@
     var idleIO = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) { en.target.classList.toggle('is-idle', !en.isIntersecting); });
     }, { rootMargin: '100px 0px' });
-    $$('.hero__panel, .win__panel, .brands, .final-cta__card').forEach(function (el) { idleIO.observe(el); });
+    $$('.hero__panel, .win__panel, .brands, .deals, .final-cta__card').forEach(function (el) { idleIO.observe(el); });
   }
 })();

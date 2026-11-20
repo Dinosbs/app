@@ -45,9 +45,12 @@ Am Desktop schwebt ab dem Gewinnspiel zusätzlich eine kleine QR-Karte unten rec
 anderer QR-Code zu sehen ist, und lässt sich wegklicken. Alle Codes führen auf https://app.vorteile.net (Store-Weiche).
 Navigation: „Gewinnspiel“ ist hervorgehoben, mobil als Geschenk-Knopf neben „App laden“.
 
-**Mobil (Hochformat):** Kapiteltext oben, Handy darunter. Beim Kapitelwechsel steigt das Handy in die freie
-Bildschirmmitte und wird größer, danach setzt es sich unter den nächsten Text. Am Ende der Story scrollt es mit
-weg. Die Leiste „vorteile.net App – Laden“ blendet sich aus, solange andere Store-Buttons zu sehen sind.
+**Mobil (Hochformat):** Kapiteltext oben, Handy ruhig darunter – ohne Drehen oder Schwenken. In beiden Kapiteln steht
+das Handy an derselben Stelle und wechselt nur den Bildschirm; der Text blendet erst ein, wenn er oben angepinnt ist.
+Alle Positionen beziehen sich auf die Bühnenhöhe (100svh), damit nichts verrutscht, wenn Safari beim Scrollen die
+Adressleiste einklappt. Am Ende der Story scrollt das Handy mit weg. Die Leiste „vorteile.net App – Laden“ blendet sich
+aus, solange andere Store-Buttons zu sehen sind. Auf dem Handy gibt es keine Unschärfe hinter Kopfzeile und Leiste
+und keinen bewegten Hero-Verlauf (spart Rechenleistung beim Scrollen).
 **Handy quer:** Text und Handy nebeneinander wie am Desktop.
 
 Die Screens sind in HTML nachgebaut (Abschnitt `data-story` in `index.html`). Die Choreografie steht in `main.js`
